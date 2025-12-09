@@ -81,10 +81,54 @@ public class UserRepository {
         );
     }
     
+    public List<User> getUserByFirstName(String firstName) {
+        return jdbcTemplate.query(
+                "SELECT * FROM User WHERE firstName = ?",
+                new Object[]{firstName},
+                (rs, rowNum) -> {
+                    User e = new User();
+                    e.setIdUser(rs.getInt("idUser"));
+                    e.setFirstName(rs.getString("firstName"));
+                    e.setLastName(rs.getString("lastName"));
+                    e.setPassword(rs.getString("password"));
+                    e.setEmail(rs.getString("email"));
+                    
+                    //fixed profile
+                    e.setIdProfileDefault(rs.getInt("idProfileDefault"));
+                    
+                    //custom profile
+                    
+                    return e;
+                }
+        );
+    }
+    
     public List<User> getUserByLastName(String lastName) {
         return jdbcTemplate.query(
                 "SELECT * FROM User WHERE lastName = ?",
                 new Object[]{lastName},
+                (rs, rowNum) -> {
+                    User e = new User();
+                    e.setIdUser(rs.getInt("idUser"));
+                    e.setFirstName(rs.getString("firstName"));
+                    e.setLastName(rs.getString("lastName"));
+                    e.setPassword(rs.getString("password"));
+                    e.setEmail(rs.getString("email"));
+                    
+                    //fixed profile
+                    e.setIdProfileDefault(rs.getInt("idProfileDefault"));
+                    
+                    //custom profile
+                    
+                    return e;
+                }
+        );
+    }
+    
+    public List<User> getUserByEmail(String email) {
+        return jdbcTemplate.query(
+                "SELECT * FROM User WHERE email = ?",
+                new Object[]{email},
                 (rs, rowNum) -> {
                     User e = new User();
                     e.setIdUser(rs.getInt("idUser"));
@@ -128,7 +172,30 @@ public class UserRepository {
 	    
 	//-------------------------------- PUT METHODS --------------------------------//
 	    
-	
+    public void replaceFirstName(int idUser, String firstName) {
+    	String sql = "UPDATE User SET firstName = ? WHERE idUser = ?";
+        jdbcTemplate.update(sql, firstName, idUser);
+    }
+    
+    public void replaceLastName(int idUser, String lastName) {
+    	String sql = "UPDATE User SET lastName = ? WHERE idUser = ?";
+        jdbcTemplate.update(sql, lastName, idUser);
+    }
+    
+    public void replacePassword(int idUser, String password) {
+    	String sql = "UPDATE User SET password = ? WHERE idUser = ?";
+        jdbcTemplate.update(sql, password, idUser);
+    }
+    
+    public void replaceEmail(int idUser, String email) {
+    	String sql = "UPDATE User SET email = ? WHERE idUser = ?";
+        jdbcTemplate.update(sql, email, idUser);
+    }
+    
+    public void replaceProfileDefault(int idUser, int idProfileDefault) {
+    	String sql = "UPDATE User SET idProfileDefault = ? WHERE idUser = ?";
+        jdbcTemplate.update(sql, idProfileDefault, idUser);
+    }
 	    
 	//-------------------------------- DELETE METHODS --------------------------------//
 	    

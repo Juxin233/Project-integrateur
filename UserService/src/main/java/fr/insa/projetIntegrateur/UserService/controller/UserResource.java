@@ -35,7 +35,7 @@ public class UserResource {
         return userRepository.getAllUsers();
     }
 
-    @GetMapping("/get/{id}")
+    @GetMapping("/getId/{id}")
     public ResponseEntity<User> getUserById(@PathVariable int id) {
         User e = userRepository.getUserById(id);
         if (e != null) {
@@ -44,10 +44,20 @@ public class UserResource {
             return ResponseEntity.notFound().build();
         }
     }
+    
+    @GetMapping("/getFname/{firstName}")
+    public List<User> getUserByFirstName(@PathVariable String firstName) {
+        return userRepository.getUserByFirstName(firstName);
+    }
 
-    @GetMapping("/get/{lastName}")
+    @GetMapping("/getLname/{lastName}")
     public List<User> getUserByLastName(@PathVariable String lastName) {
         return userRepository.getUserByLastName(lastName);
+    }
+    
+    @GetMapping("/getEmail/{email}")
+    public List<User> getUserByEmail(@PathVariable String email) {
+        return userRepository.getUserByEmail(email);
     }
     
     //-------------------------------- POST METHODS --------------------------------//
@@ -60,7 +70,45 @@ public class UserResource {
     
     //-------------------------------- PUT METHODS --------------------------------//
     
+    @PutMapping("/replaceFname/{id}")
+    public ResponseEntity<String> replaceFirstName(
+            @PathVariable int id, 
+            @RequestBody String firstName) {
+        userRepository.replaceFirstName(id, firstName);
+        return ResponseEntity.ok("Disponibilités mises à jour");
+    }
     
+    @PutMapping("/replaceLname/{id}")
+    public ResponseEntity<String> replaceLastName(
+            @PathVariable int id, 
+            @RequestBody String lastName) {
+        userRepository.replaceLastName(id, lastName);
+        return ResponseEntity.ok("Disponibilités mises à jour");
+    }
+    
+    @PutMapping("/replacePassword/{id}")
+    public ResponseEntity<String> replacePassword(
+            @PathVariable int id, 
+            @RequestBody String password) {
+        userRepository.replacePassword(id, password);
+        return ResponseEntity.ok("Disponibilités mises à jour");
+    }
+    
+    @PutMapping("/replaceEmail/{id}")
+    public ResponseEntity<String> replaceEmail(
+            @PathVariable int id, 
+            @RequestBody String email) {
+        userRepository.replaceEmail(id, email);
+        return ResponseEntity.ok("Disponibilités mises à jour");
+    }
+    
+    @PutMapping("/replaceProfileDef/{id}")
+    public ResponseEntity<String> replaceProfileDefault(
+            @PathVariable int id, 
+            @RequestBody int idProfileDefault) {
+        userRepository.replaceProfileDefault(id, idProfileDefault);
+        return ResponseEntity.ok("Disponibilités mises à jour");
+    }
     
     //-------------------------------- DELETE METHODS --------------------------------//
     
