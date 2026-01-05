@@ -1,33 +1,30 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "ItineraryRequest",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "GatewayService-RoutingService/request.schema.json",
+  "title": "RoutingRequest",
   "type": "object",
-  "required": ["origin", "destination", "profile"],
+  "additionalProperties": false,
+  "required": ["start", "end", "algorithm"],
   "properties": {
-    "origin": {
-      "type": "object",
-      "required": ["lat", "lon"],
-      "properties": {
-        "lat": { "type": "number" },
-        "lon": { "type": "number" }
-      }
+    "start": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Node id (OSM id) of the start node."
     },
-    "destination": {
-      "type": "object",
-      "required": ["lat", "lon"],
-      "properties": {
-        "lat": { "type": "number" },
-        "lon": { "type": "number" }
-      }
+    "end": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Node id (OSM id) of the end node."
     },
-    "profile": {
+    "algorithm": {
       "type": "string",
-      "enum": ["comfort", "safety", "speed", "custom"]
+      "enum": ["dijkstra", "astar"],
+      "description": "Routing algorithm to use. Must match an exposed endpoint."
     },
-    "constraints": {
+    "extensions": {
       "type": "object",
+      "description": "Optional extra parameters reserved for future versions. Current service may ignore them.",
       "additionalProperties": true
     }
-  },
-  "additionalProperties": false
+  }
 }
