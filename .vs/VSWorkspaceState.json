@@ -1,0 +1,18 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\GUI",
+    "\\GUI\\src",
+    "\\GUI\\src\\main",
+    "\\GUI\\src\\main\\java",
+    "\\GUI\\src\\main\\java\\fr",
+    "\\GUI\\src\\main\\java\\fr\\insa",
+    "\\GUI\\src\\main\\java\\fr\\insa\\projetIntegrateur",
+    "\\GUI\\src\\main\\java\\fr\\insa\\projetIntegrateur\\GUI",
+    "\\RoutingService",
+    "\\RoutingService\\.mvn",
+    "\\RoutingService\\.mvn\\wrapper"
+  ],
+  "SelectedNode": "\\GUI\\src\\main\\java\\fr\\insa\\projetIntegrateur\\GUI\\GuiApplication.java",
+  "PreviewInSolutionExplorer": false
+}
