@@ -37,15 +37,16 @@ public class Dijkstra {
         Noeud endNode = g.getNoeud(endId);
         if (startNode == null || endNode == null) {
             System.out.println("Start or end node does not exist in the graph!");
+            return Collections.emptyList();
         }
 
         if (g.getAdjacents(startId).isEmpty()) {
             System.out.println("Start node has no outgoing arcs!");
         }
+        
         if (g.getAdjacents(endId).isEmpty()) {
             System.out.println("End node has no outgoing arcs!");
         }
-
         
         // Initialisation
         for (Noeud n : g.getNoeuds()) {
@@ -71,8 +72,11 @@ public class Dijkstra {
             visited.add(u);
 
             if (u == endId) break; // arrivé au noeud final
-
-            for (Arc arc : g.getAdjacents(u)) {
+            
+            List<Arc> arcs = g.getAdjacents(u);
+            System.out.println(arcs.size());
+            if(arcs == null) continue;
+            for (Arc arc : arcs) {
                 long v = arc.getDestination().getId();
                 double alt = dist.get(u) + arc.getLongueur();
 
@@ -93,8 +97,9 @@ public class Dijkstra {
             cur = arc.getOrigine().getId();
         }
 
-        if (path.isEmpty() && startId != endId) {
+        if (!prevArc.containsKey(endId) && startId != endId) {
             System.out.println("No path found between start and end!");
+            return Collections.emptyList();
         }
 
         return path;

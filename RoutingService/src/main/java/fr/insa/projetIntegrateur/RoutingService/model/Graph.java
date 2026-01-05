@@ -16,7 +16,7 @@ public class Graph {
 	    }
 
 	    public void ajouterArc(Arc arc) {
-	        adj.get(arc.getOrigine().getId()).add(arc);
+	        adj.computeIfAbsent(arc.getOrigine().getId(),k->new ArrayList<>()).add(arc);
 	    }
 
 	    public Noeud getNoeud(long id) { return noeuds.get(id); }
