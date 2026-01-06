@@ -15,28 +15,17 @@ import java.util.Random;
 public class GeoJsonLoader {
 
     private final ObjectMapper mapper = new ObjectMapper();
-
-    // - ID pour synthetic node
-    private final AtomicLong syntheticNodeId = new AtomicLong(-1);
-
     // arc unique ID
     private final AtomicLong arcIdGen = new AtomicLong(1);
 
-
     private final Random random = new Random();
-    private static final int COORD_PRECISION = 4;
 
     private double randIndicator() {
         return 0.5 + random.nextDouble() * 0.5;
     }
 
-    private static String coordKey(double lat, double lon) {
-        return String.format("%." + COORD_PRECISION + "f,%." + COORD_PRECISION + "f", lat, lon);
-    }
-
     private Noeud getOrCreateOsmNode(Graph g,
                                     Map<Long, Noeud> osmCache,
-                                    Map<String, Noeud> coordToOsmNode,
                                     long osmId,
                                     double lat,
                                     double lon) {
@@ -45,44 +34,7 @@ public class GeoJsonLoader {
         Noeud nn = new Noeud(osmId, lat, lon);
         g.ajouterNoeud(nn);
         osmCache.put(osmId, nn);
-        // ecrire un index
-        coordToOsmNode.putIfAbsent(coordKey(lat, lon), nn);
         return nn;
-    }
-
-
-    private Noeud getOrCreateSyntheticByCoord(Graph g,
-                                              Map<String, Noeud> syntheticCoordCache,
-                                              double lat,
-                                              double lon) {
-        String k = coordKey(lat, lon);
-        Noeud existing = syntheticCoordCache.get(k);
-        if (existing != null) return existing;
-
-
-        long id = syntheticNodeId.getAndDecrement();
-        Noeud nn = new Noeud(id, lat, lon);
-        g.ajouterNoeud(nn);
-        syntheticCoordCache.put(k, nn);
-        return nn;
-    }
-
-
-    /**
-     * utiliser  d'abord osm id
-     * sinon synthetic id
-     */
-    private Noeud resolveNodeForCoord(Graph g,
-                                     Map<String, Noeud> coordToOsmNode,
-                                     Map<String, Noeud> syntheticCoordCache,
-                                     double lat,
-                                     double lon) {
-        String k = coordKey(lat, lon);
-        Noeud osmNode = coordToOsmNode.get(k);
-        if (osmNode != null) return osmNode;
-
-
-        return getOrCreateSyntheticByCoord(g, syntheticCoordCache, lat, lon);
     }
 
 
@@ -100,10 +52,6 @@ public class GeoJsonLoader {
 
             // 1) OSM node id -> Noeud
             Map<Long, Noeud> osmCache = new HashMap<>();
-            // 2) rounded(lat,lon) -> Noeud 
-            Map<String, Noeud> coordToOsmNode = new HashMap<>();
-            // 3) rounded(lat,lon) -> Noeud 
-            Map<String, Noeud> syntheticCoordCache = new HashMap<>();
 
             // -------- Pass 1: load Point features (real OSM node) --------
             for (JsonNode feature : features) {
@@ -124,7 +72,6 @@ public class GeoJsonLoader {
                 Noeud n = new Noeud(osmId, lat, lon);
                 g.ajouterNoeud(n);
                 osmCache.put(osmId, n);
-                coordToOsmNode.putIfAbsent(coordKey(lat, lon), n);
             }
 
 
@@ -143,7 +90,7 @@ public class GeoJsonLoader {
 
                 long fromOsm = props.get("from_node").asLong();
                 long toOsm = props.get("to_node").asLong();
-
+                long arcId = props.get("osm_way_id").asLong();
                 String typeVoie = props.has("highway") ? props.get("highway").asText() : null;
                 String onewayVal = props.has("oneway") ? props.get("oneway").asText() : "no";
 
@@ -154,51 +101,36 @@ public class GeoJsonLoader {
                 double lonLast = coords.get(n - 1).get(0).asDouble();
                 double latLast = coords.get(n - 1).get(1).asDouble();
 
-                Noeud fromNode = getOrCreateOsmNode(g, osmCache, coordToOsmNode, fromOsm, latFirst, lonFirst);
-                Noeud toNode = getOrCreateOsmNode(g, osmCache, coordToOsmNode, toOsm, latLast, lonLast);
+                Noeud fromNode = getOrCreateOsmNode(g, osmCache,  fromOsm, latFirst, lonFirst);
+                Noeud toNode = getOrCreateOsmNode(g, osmCache, toOsm, latLast, lonLast);
 
+                // basuler  from/to nodes；ustiliser d'abord OSM id, sinon synthetic id
+                Noeud a = fromNode;
+                Noeud b = toNode;
 
-                for (int i = 0; i < n - 1; i++) {
-                    double lon1 = coords.get(i).get(0).asDouble();
-                    double lat1 = coords.get(i).get(1).asDouble();
-                    double lon2 = coords.get(i + 1).get(0).asDouble();
-                    double lat2 = coords.get(i + 1).get(1).asDouble();
+                double dist = Haversine.distance(a.getLat(), a.getLon(), b.getLat(), b.getLon());
 
-                    // basuler  from/to nodes；ustiliser d'abord OSM id, sinon synthetic id
-                    Noeud a = (i == 0)
-                            ? fromNode
-                            : resolveNodeForCoord(g, coordToOsmNode, syntheticCoordCache, lat1, lon1);
+                double risquePieton = randIndicator();
+                double risqueVelo = randIndicator();
+                double confortPieton = randIndicator();
+                double confortVelo = randIndicator();
+                double diffVelo = randIndicator();
+                double diffPieton = randIndicator();
 
-                    Noeud b = (i + 1 == n - 1)
-                            ? toNode
-                            : resolveNodeForCoord(g, coordToOsmNode, syntheticCoordCache, lat2, lon2);
-
-                    double dist = Haversine.distance(a.getLat(), a.getLon(), b.getLat(), b.getLon());
-
-                    double risquePieton = randIndicator();
-                    double risqueVelo = randIndicator();
-                    double confortPieton = randIndicator();
-                    double confortVelo = randIndicator();
-                    double diffVelo = randIndicator();
-                    double diffPieton = randIndicator();
-
-                    long arcId = arcIdGen.getAndIncrement();
-
-                    switch (onewayVal) {
-                        case "yes" -> g.ajouterArc(new Arc(a, b, dist, typeVoie, arcId,
+                switch (onewayVal) {
+                    case "yes" -> g.ajouterArc(new Arc(a, b, dist, typeVoie, arcId,
+                            risquePieton, risqueVelo, confortPieton, confortVelo, diffVelo, diffPieton));
+                    case "no" -> g.ajouterArc(new Arc(b, a, dist, typeVoie, arcId,
+                            risquePieton, risqueVelo, confortPieton, confortVelo, diffVelo, diffPieton));
+                    default -> {
+                        g.ajouterArc(new Arc(a, b, dist, typeVoie, arcId,
                                 risquePieton, risqueVelo, confortPieton, confortVelo, diffVelo, diffPieton));
-                        case "-1" -> g.ajouterArc(new Arc(b, a, dist, typeVoie, arcId,
+                        g.ajouterArc(new Arc(b, a, dist, typeVoie, arcId,
                                 risquePieton, risqueVelo, confortPieton, confortVelo, diffVelo, diffPieton));
-                        default -> {
-                            g.ajouterArc(new Arc(a, b, dist, typeVoie, arcId,
-                                    risquePieton, risqueVelo, confortPieton, confortVelo, diffVelo, diffPieton));
-                            g.ajouterArc(new Arc(b, a, dist, typeVoie, arcId,
-                                    risquePieton, risqueVelo, confortPieton, confortVelo, diffVelo, diffPieton));
-                        }
                     }
                 }
             }
-
+            
             System.out.println("Graphe chargé : " + g.getNombreNoeuds() + " noeuds, " + g.getNombreArcs() + " arcs.");
             return g;
         }
