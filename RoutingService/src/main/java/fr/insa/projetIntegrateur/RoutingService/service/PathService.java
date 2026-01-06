@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 import fr.insa.projetIntegrateur.RoutingService.model.Arc;
 import fr.insa.projetIntegrateur.RoutingService.utils.GeoJsonLoader;
 import fr.insa.projetIntegrateur.RoutingService.algorithms.Astar;
+import fr.insa.projetIntegrateur.RoutingService.algorithms.ConstrainedAstar;
+import fr.insa.projetIntegrateur.RoutingService.algorithms.ConstrainedDijkstra;
 import fr.insa.projetIntegrateur.RoutingService.algorithms.Dijkstra;
 
 @Service
@@ -34,4 +36,14 @@ public class PathService {
 	    public List<Arc> calculerAstar(long start, long end) {
 	        return new Astar().shortestPath(graphe, start, end);
 	    }
+
+		public List<Arc> calculerCheminFiltre(long start, long end, double sec, double conf, double diff) {
+        ConstrainedDijkstra algo = new ConstrainedDijkstra();
+        return algo.shortestPath(graphe, start, end, sec, conf, diff);
+    }
+
+	public List<Arc> calculerCheminFiltreAstar(long start, long end, double sec, double conf, double diff) {
+        ConstrainedAstar algo = new ConstrainedAstar();
+        return algo.shortestPath(graphe, start, end, sec, conf, diff);
+    }
 }
