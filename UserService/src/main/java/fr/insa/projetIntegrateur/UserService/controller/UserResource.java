@@ -60,6 +60,13 @@ public class UserResource {
         return userRepository.getUserByEmail(email);
     }
     
+    //all the previous itineraries requested by the user
+    //NEED TO CHANGE ONCE ITINERARY TABLE IS DEFINED CORRECTLY!!!
+    @GetMapping("/getItineraries/{idUser}")
+    public int getItinerariesById(@PathVariable int id) {
+        return userRepository.getItinerariesById(id);
+    }
+    
     //-------------------------------- POST METHODS --------------------------------//
     
     @PostMapping
@@ -75,7 +82,7 @@ public class UserResource {
             @PathVariable int id, 
             @RequestBody String firstName) {
         userRepository.replaceFirstName(id, firstName);
-        return ResponseEntity.ok("Disponibilités mises à jour");
+        return ResponseEntity.ok("First name replaced successfully.");
     }
     
     @PutMapping("/replaceLname/{id}")
@@ -83,7 +90,7 @@ public class UserResource {
             @PathVariable int id, 
             @RequestBody String lastName) {
         userRepository.replaceLastName(id, lastName);
-        return ResponseEntity.ok("Disponibilités mises à jour");
+        return ResponseEntity.ok("Last name replaced successfully.");
     }
     
     @PutMapping("/replacePassword/{id}")
@@ -91,7 +98,7 @@ public class UserResource {
             @PathVariable int id, 
             @RequestBody String password) {
         userRepository.replacePassword(id, password);
-        return ResponseEntity.ok("Disponibilités mises à jour");
+        return ResponseEntity.ok("Password replaced successfully.");
     }
     
     @PutMapping("/replaceEmail/{id}")
@@ -99,7 +106,7 @@ public class UserResource {
             @PathVariable int id, 
             @RequestBody String email) {
         userRepository.replaceEmail(id, email);
-        return ResponseEntity.ok("Disponibilités mises à jour");
+        return ResponseEntity.ok("Email replaced successfully.");
     }
     
     @PutMapping("/replaceProfileDef/{id}")
@@ -107,7 +114,7 @@ public class UserResource {
             @PathVariable int id, 
             @RequestBody int idProfileDefault) {
         userRepository.replaceProfileDefault(id, idProfileDefault);
-        return ResponseEntity.ok("Disponibilités mises à jour");
+        return ResponseEntity.ok("Default user profile replaced successfully.");
     }
     
     //-------------------------------- DELETE METHODS --------------------------------//

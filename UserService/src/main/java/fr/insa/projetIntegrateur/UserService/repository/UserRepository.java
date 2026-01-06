@@ -146,6 +146,29 @@ public class UserRepository {
                 }
         );
     }
+    
+    public int getItinerariesById(int id) {
+    	/*
+        return jdbcTemplate.query(
+                "SELECT * FROM Itinerary WHERE idUser = ?",
+                new Object[]{id},
+                (rs, rowNum) -> {
+                    Itinerary it = new Itinerary();
+                    e.setIdUser(rs.getInt("idUser"));
+                    e.setFirstName(rs.getString("firstName"));
+                    e.setLastName(rs.getString("lastName"));
+                    e.setPassword(rs.getString("password"));
+                    e.setEmail(rs.getString("email"));
+
+                    
+                    return it;
+                }
+        );
+        works only if we get one but normally we should get many
+        
+        */
+    	return 0;
+    }
 	    
 	//-------------------------------- POST METHODS --------------------------------//
     
