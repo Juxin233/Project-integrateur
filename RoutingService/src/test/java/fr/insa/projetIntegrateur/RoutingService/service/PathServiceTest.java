@@ -13,14 +13,14 @@ class PathServiceTest {
 	@Test
 	 void testCalculerAStar() throws Exception {
         PathService service = new PathService();
-        long startId = 11818183772L;
-        long endId = 10621261092L;
+        long startId = 5561695614L;
+        long endId = 13334782210L;
 
-        List<Arc> chemin = service.calculerDijkstra(startId, endId);
+        List<Long> chemin = service.calculerDijkstra(startId, endId);
         System.out.print(chemin);
         assertFalse(chemin.isEmpty(), "Le chemin ne doit pas être vide");
-        assertEquals(startId, chemin.get(0).getOrigine().getId());
-        assertEquals(endId, chemin.get(chemin.size() - 1).getDestination().getId());
+        assertEquals(startId, chemin.get(0));
+        assertEquals(endId, chemin.get(chemin.size() - 1));
     }
 
 }

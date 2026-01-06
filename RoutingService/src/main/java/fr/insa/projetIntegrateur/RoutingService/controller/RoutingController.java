@@ -22,13 +22,10 @@ public class RoutingController {
     }
 
     @GetMapping("/dijkstra")
-    public List<Map<String,Object>> route(
+    public List<Long> route(
             @RequestParam long start,
             @RequestParam long end) {
 
-        return service.calculerDijkstra(start, end)
-                      .stream()
-                      .map(Arc::toMap)
-                      .toList();
+        return service.calculerDijkstra(start, end);
     }
 }

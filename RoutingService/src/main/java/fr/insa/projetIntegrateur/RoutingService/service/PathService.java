@@ -26,7 +26,7 @@ public class PathService {
 	        }
 	    }
 
-	    public List<Arc> calculerDijkstra(long start, long end) {
+	    public List<Long> calculerDijkstra(long start, long end) {
 	        return new Dijkstra().shortestPath(graphe, start, end);
 	    }
 	    
