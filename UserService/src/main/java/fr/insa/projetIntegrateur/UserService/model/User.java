@@ -14,7 +14,7 @@ public class User {
 	
 	//profile related fields
 	private int idProfileDefault; //id of the preferred/actual default user profile among the FIXED ones!!!
-	//private ??? customProfile; //custom profile of the user that changes depending on feedback 
+	private String customProfile; //custom profile of the user defined using a slider, stored in db as json so string here
 	
 	//other fields
 	
@@ -78,6 +78,14 @@ public class User {
 
 	public void setIdProfileDefault(int idProfileDefault) {
 		this.idProfileDefault = idProfileDefault;
+	}
+	
+	public String getCustomProfile() {
+		return customProfile;
+	}
+
+	public void setCustomProfile(String customProfile) {
+		this.customProfile = customProfile;
 	}
 	
 }

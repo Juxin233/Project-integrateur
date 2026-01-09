@@ -23,6 +23,8 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.insa.projetIntegrateur.UserService.model.Itinerary;
+import fr.insa.projetIntegrateur.UserService.model.Profile;
 import fr.insa.projetIntegrateur.UserService.model.User;
 
 @Component
@@ -53,6 +55,7 @@ public class UserRepository {
                 e.setIdProfileDefault(rs.getInt("idProfileDefault"));
                 
                 //custom profile
+                e.setCustomProfile(rs.getString("customProfile"));
                 
                 return e;
             }
@@ -75,6 +78,7 @@ public class UserRepository {
                     e.setIdProfileDefault(rs.getInt("idProfileDefault"));
                     
                     //custom profile
+                    e.setCustomProfile(rs.getString("customProfile"));
                     
                     return e;
                 }
@@ -97,6 +101,7 @@ public class UserRepository {
                     e.setIdProfileDefault(rs.getInt("idProfileDefault"));
                     
                     //custom profile
+                    e.setCustomProfile(rs.getString("customProfile"));
                     
                     return e;
                 }
@@ -119,6 +124,7 @@ public class UserRepository {
                     e.setIdProfileDefault(rs.getInt("idProfileDefault"));
                     
                     //custom profile
+                    e.setCustomProfile(rs.getString("customProfile"));
                     
                     return e;
                 }
@@ -141,33 +147,56 @@ public class UserRepository {
                     e.setIdProfileDefault(rs.getInt("idProfileDefault"));
                     
                     //custom profile
+                    e.setCustomProfile(rs.getString("customProfile"));
                     
                     return e;
                 }
         );
     }
     
-    public int getItinerariesById(int id) {
-    	/*
+    public Profile getUserProfileDefaultById(int id) {
+        String sql = "SELECT p.idProfile, p.profileName, p.profileVector " +
+                     "FROM Profile p " +
+                     "JOIN User u ON u.idProfileDefault = p.idProfile " +
+                     "WHERE u.idUser = ?";
+
+        return jdbcTemplate.queryForObject(
+                sql,
+                new Object[]{id},
+                (rs, rowNum) -> {
+                    Profile p = new Profile();
+                    p.setIdProfile(rs.getInt("idProfile"));
+                    p.setProfileName(rs.getString("profileName"));
+                    p.setProfileVector(rs.getString("profileVector"));
+                    return p;
+                }
+        );
+    }
+    
+    public String getUserCustomProfileById(int id) {
+        return jdbcTemplate.queryForObject(
+        		"SELECT customProfile FROM User WHERE idUser = ?",
+                new Object[]{id},
+                (rs, rowNum) -> {
+                    // rs.getString() works perfectly for JSON fields in MySQL
+                    return rs.getString("customProfile");
+                }
+        );
+    }
+    
+    public List<Itinerary> getItinerariesById(int id) {
         return jdbcTemplate.query(
                 "SELECT * FROM Itinerary WHERE idUser = ?",
                 new Object[]{id},
                 (rs, rowNum) -> {
                     Itinerary it = new Itinerary();
-                    e.setIdUser(rs.getInt("idUser"));
-                    e.setFirstName(rs.getString("firstName"));
-                    e.setLastName(rs.getString("lastName"));
-                    e.setPassword(rs.getString("password"));
-                    e.setEmail(rs.getString("email"));
-
+                    it.setIdUser(rs.getInt("idUser"));
+                    it.setItineraryCol(rs.getString("itineraryCol"));
+                    it.setIdUser(rs.getInt("idUser"));
                     
                     return it;
                 }
         );
-        works only if we get one but normally we should get many
-        
-        */
-    	return 0;
     }
 	    
 	//-------------------------------- POST METHODS --------------------------------//
@@ -182,7 +211,7 @@ public class UserRepository {
             PreparedStatement ps = connection.prepareStatement(sql, new String[] {"idUser"});
             ps.setString(1, user.getFirstName());
             ps.setString(2, user.getLastName());
-            ps.setString(4, user.getPassword());
+            ps.setString(3, user.getPassword());
             ps.setString(4, user.getEmail());
             return ps;
         }, keyHolder);
@@ -191,6 +220,25 @@ public class UserRepository {
         user.setIdUser(keyHolder.getKey().intValue());
 
         return user;
+    }
+    
+    public Itinerary addNewItinerary(Itinerary itinerary) {
+        String sql = "INSERT INTO Itinerary (itineraryCol, idUser) VALUES (?, ?)";
+
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+
+        //we do not define the profiles at this stage since this is a brand new user
+        jdbcTemplate.update(connection -> {
+            PreparedStatement ps = connection.prepareStatement(sql, new String[] {"idUser"});
+            ps.setString(1, itinerary.getItineraryCol());
+            ps.setInt(2, itinerary.getIdUser());
+            return ps;
+        }, keyHolder);
+
+        // Set the generated ID in the itinerary object
+        itinerary.setIdItinerary(keyHolder.getKey().intValue());
+
+        return itinerary;
     }
 	    
 	//-------------------------------- PUT METHODS --------------------------------//
@@ -218,6 +266,11 @@ public class UserRepository {
     public void replaceProfileDefault(int idUser, int idProfileDefault) {
     	String sql = "UPDATE User SET idProfileDefault = ? WHERE idUser = ?";
         jdbcTemplate.update(sql, idProfileDefault, idUser);
+    }
+    
+    public void replaceCustomProfile(int idUser, String customProfile) {
+    	String sql = "UPDATE User SET customProfile = ? WHERE idUser = ?";
+        jdbcTemplate.update(sql, customProfile, idUser);
     }
 	    
 	//-------------------------------- DELETE METHODS --------------------------------//

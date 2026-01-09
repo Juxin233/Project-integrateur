@@ -12,6 +12,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.insa.projetIntegrateur.UserService.model.Itinerary;
+import fr.insa.projetIntegrateur.UserService.model.Profile;
 import fr.insa.projetIntegrateur.UserService.model.User;
 import fr.insa.projetIntegrateur.UserService.repository.UserRepository;
 
@@ -35,7 +37,7 @@ public class UserResource {
         return userRepository.getAllUsers();
     }
 
-    @GetMapping("/getId/{id}")
+    @GetMapping("/get/{id}")
     public ResponseEntity<User> getUserById(@PathVariable int id) {
         User e = userRepository.getUserById(id);
         if (e != null) {
@@ -45,25 +47,33 @@ public class UserResource {
         }
     }
     
-    @GetMapping("/getFname/{firstName}")
+    @GetMapping("/get/fName/{firstName}")
     public List<User> getUserByFirstName(@PathVariable String firstName) {
         return userRepository.getUserByFirstName(firstName);
     }
 
-    @GetMapping("/getLname/{lastName}")
+    @GetMapping("/get/lName/{lastName}")
     public List<User> getUserByLastName(@PathVariable String lastName) {
         return userRepository.getUserByLastName(lastName);
     }
     
-    @GetMapping("/getEmail/{email}")
+    @GetMapping("/get/email/{email}")
     public List<User> getUserByEmail(@PathVariable String email) {
         return userRepository.getUserByEmail(email);
     }
     
-    //all the previous itineraries requested by the user
-    //NEED TO CHANGE ONCE ITINERARY TABLE IS DEFINED CORRECTLY!!!
-    @GetMapping("/getItineraries/{idUser}")
-    public int getItinerariesById(@PathVariable int id) {
+    @GetMapping("/get/profileDefault/{idUser}")
+    public Profile getUserProfileDefaultById(@PathVariable int id) {
+        return userRepository.getUserProfileDefaultById(id);
+    }
+    
+    @GetMapping("/get/customProfile/{idUser}")
+    public String getUserCustomProfileById(@PathVariable int id) {
+        return userRepository.getUserCustomProfileById(id);
+    }
+    
+    @GetMapping("/get/Itineraries/{idUser}")
+    public List<Itinerary> getItinerariesById(@PathVariable int id) {
         return userRepository.getItinerariesById(id);
     }
     
@@ -75,9 +85,15 @@ public class UserResource {
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
     
+    @PostMapping("post/itinerary")
+    public ResponseEntity<Itinerary> addNewItinerary(@RequestBody Itinerary itinerary) {
+    	Itinerary saved = userRepository.addNewItinerary(itinerary);
+        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+    } 
+    
     //-------------------------------- PUT METHODS --------------------------------//
     
-    @PutMapping("/replaceFname/{id}")
+    @PutMapping("/replace/fName/{id}")
     public ResponseEntity<String> replaceFirstName(
             @PathVariable int id, 
             @RequestBody String firstName) {
@@ -85,7 +101,7 @@ public class UserResource {
         return ResponseEntity.ok("First name replaced successfully.");
     }
     
-    @PutMapping("/replaceLname/{id}")
+    @PutMapping("/replace/lName/{id}")
     public ResponseEntity<String> replaceLastName(
             @PathVariable int id, 
             @RequestBody String lastName) {
@@ -93,7 +109,7 @@ public class UserResource {
         return ResponseEntity.ok("Last name replaced successfully.");
     }
     
-    @PutMapping("/replacePassword/{id}")
+    @PutMapping("/replace/password/{id}")
     public ResponseEntity<String> replacePassword(
             @PathVariable int id, 
             @RequestBody String password) {
@@ -101,7 +117,7 @@ public class UserResource {
         return ResponseEntity.ok("Password replaced successfully.");
     }
     
-    @PutMapping("/replaceEmail/{id}")
+    @PutMapping("/replace/email/{id}")
     public ResponseEntity<String> replaceEmail(
             @PathVariable int id, 
             @RequestBody String email) {
@@ -109,12 +125,20 @@ public class UserResource {
         return ResponseEntity.ok("Email replaced successfully.");
     }
     
-    @PutMapping("/replaceProfileDef/{id}")
+    @PutMapping("/replace/profileDef/{id}")
     public ResponseEntity<String> replaceProfileDefault(
             @PathVariable int id, 
             @RequestBody int idProfileDefault) {
         userRepository.replaceProfileDefault(id, idProfileDefault);
         return ResponseEntity.ok("Default user profile replaced successfully.");
+    }
+    
+    @PutMapping("/replace/customProfile/{id}")
+    public ResponseEntity<String> replaceCustomProfile(
+            @PathVariable int id, 
+            @RequestBody String customProfile) {
+        userRepository.replaceCustomProfile(id, customProfile);
+        return ResponseEntity.ok("Custom user profile replaced successfully.");
     }
     
     //-------------------------------- DELETE METHODS --------------------------------//
@@ -128,5 +152,7 @@ public class UserResource {
             return ResponseEntity.notFound().build();
         }
     }
+    
+    
     
 }

@@ -8,18 +8,17 @@ public class Itinerary {
 	//id field
 	private int idItinerary;
 	
-	//list of nodes that make the itinerary, stored as ???
-	private List<Long> itineraryNodes;
+	//itinerary returned by the routing service, stored as a json in the db
+	private String itineraryCol;
 	
 	//user that queried the itinerary
 	private int idUser;
 	
 	//-------------------------------- CONSTRUCTORS --------------------------------//
 	
-	public Itinerary(int idItinerary, List<Long> itineraryNodes, int idUser) {
-		super();
+	public Itinerary(int idItinerary, String itineraryCol, int idUser) {
 		this.idItinerary = idItinerary;
-		this.itineraryNodes = itineraryNodes;
+		this.itineraryCol = itineraryCol;
 		this.idUser = idUser;
 	}
 	
@@ -34,11 +33,11 @@ public class Itinerary {
 	public void setIdItinerary(int idItinerary) {
 		this.idItinerary = idItinerary;
 	}
-	public List<Long> getItineraryNodes() {
-		return itineraryNodes;
+	public String getItineraryCol() {
+		return itineraryCol;
 	}
-	public void setItineraryNodes(List<Long> itineraryNodes) {
-		this.itineraryNodes = itineraryNodes;
+	public void setItineraryCol(String itineraryCol) {
+		this.itineraryCol = itineraryCol;
 	}
 	public int getIdUser() {
 		return idUser;
