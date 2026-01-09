@@ -9,7 +9,7 @@ import java.util.*;
 
 public class Astar {
 
-    public List<Arc> shortestPath(Graph graphe, long startId, long goalId) {
+    public List<Noeud> shortestPath(Graph graphe, long startId, long goalId) {
 
         Noeud start = graphe.getNoeud(startId);
         Noeud goal = graphe.getNoeud(goalId);
@@ -55,28 +55,33 @@ public class Astar {
                     cameFrom.put(neighbor.getId(), arc);
                     gScore.put(neighbor.getId(), tentativeG);
 
-                    double f = tentativeG + Haversine.distance(neighbor.getLat(), neighbor.getLon(),
-                            goal.getLat(), goal.getLon());
+                    double f = tentativeG + Haversine.distance(
+                            neighbor.getLat(), neighbor.getLon(),
+                            goal.getLat(), goal.getLon()
+                    );
+//                    f = 0.0;
                     fScore.put(neighbor.getId(), f);
 
-                    if (!openSet.contains(neighbor)) {
-                        openSet.add(neighbor);
-                    }
+                    openSet.remove(neighbor);
+                    openSet.add(neighbor);
                 }
             }
+        
         }
 
         return Collections.emptyList(); // aucun chemin trouvé
     }
 
-    private List<Arc> reconstructPath(Map<Long, Arc> cameFrom, Noeud current) {
-        LinkedList<Arc> path = new LinkedList<>();
-        Long curId = current.getId();
+    private List<Noeud> reconstructPath(Map<Long, Arc> cameFrom, Noeud goal) {
+    	LinkedList<Noeud> path = new LinkedList<>();
+        Noeud current = goal;
 
-        while (cameFrom.containsKey(curId)) {
-            Arc arc = cameFrom.get(curId);
-            path.addFirst(arc);
-            curId = arc.getOrigine().getId();
+        path.addFirst(current);
+
+        while (cameFrom.containsKey(current.getId())) {
+            Arc arc = cameFrom.get(current.getId());
+            current = arc.getOrigine();
+            path.addFirst(current);
         }
 
         return path;

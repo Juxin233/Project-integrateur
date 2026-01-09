@@ -26,7 +26,7 @@ public class Dijkstra {
      * @param endId ID du noeud d'arrivée
      * @return liste des arcs formant le chemin le plus court, ou vide si pas de chemin
      */
-    public List<Long> shortestPath(Graph g, long startId, long endId) {
+    public List<Noeud> shortestPath(Graph g, long startId, long endId) {
         // Map : noeud -> distance depuis start
         Map<Long, Double> dist = new HashMap<>();
         // Map : noeud -> arc précédent pour reconstruire le chemin
@@ -74,7 +74,7 @@ public class Dijkstra {
             if (u == endId) break; // arrivé au noeud final
             
             List<Arc> arcs = g.getAdjacents(u);
-            System.out.println(arcs.size());
+//            System.out.println(arcs.size());
             if(arcs == null) continue;
             for (Arc arc : arcs) {
                 long v = arc.getDestination().getId();
@@ -89,14 +89,14 @@ public class Dijkstra {
         }
 
         // Reconstruire le chemin depuis endId
-        LinkedList<Long> path = new LinkedList<>();
+        LinkedList<Noeud> path = new LinkedList<>();
         Long cur = endId;
         while (prevArc.containsKey(cur)) {
             Arc arc = prevArc.get(cur);
-            path.addFirst(arc.getDestination().getId());
+            path.addFirst(arc.getDestination());
             cur = arc.getOrigine().getId();
         }
-        path.addFirst(startId);
+        path.addFirst(startNode);
         if (!prevArc.containsKey(endId) && startId != endId) {
             System.out.println("No path found between start and end!");
             return Collections.emptyList();
