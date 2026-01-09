@@ -10,11 +10,7 @@ public class Arc {
 	    private final double longueur;
 	    private final String typeVoie; // nullable
 	    private final long id;
-	    //EN COMMUN
-	    private int eclairage = 0;
-	    private int chantier = 0;
-	    private double risqueMeteo = 0.0;
-
+	    private int Type_route = 2; // 0 Pieton, 1 Velo, 2 Pieton & Velo
 	    //EQUIPE PIETON
 	    //truc a verifier
 	    private double tempsMarche = 0.0;
@@ -24,14 +20,9 @@ public class Arc {
 	    private int zonePietonne = 0;
 	    private int zoneEmpruntable = 1;
 	    private double confortPieton = 0.0;
-	    
-	    private int accesAveugle = 0;
-	    private int accesFRoulante = 0;
-
 
 	    //EQUIPE VELO
 	    private double tempsVelo = 0;
-	    private int Type_route = 0;
 	    private double risqueVelo = 0.0;
 	    private double confortVelo = 0.0;
 	    private double diffVelo =0.0;
@@ -66,26 +57,12 @@ public class Arc {
 	    public Noeud getDestination() { return destination; }
 	    public double getLongueur() { return longueur; }
 	    public String getTypeVoie() { return typeVoie; }
-	    public int getAccesAveugle() { return accesAveugle; }
-	    public void setAccesAveugle(int accesAveugle) { this.accesAveugle = accesAveugle; }
-	    public int getAccesFRoulante() { return accesFRoulante; }
-	    public void setAccesFRoulante(int accesFRoulante) { this.accesFRoulante = accesFRoulante; } 
-	    
 
 	    public double getTempsMarche() { return tempsMarche; }
 	    public void setTempsMarche(double tempsMarche) { this.tempsMarche = tempsMarche; }
 
 	    public double getRisquePieton() { return risquePieton; }
 	    public void setRisquePieton(double risquePieton) { this.risquePieton = risquePieton; }
-
-	    public double getRisqueMeteo() { return risqueMeteo; }
-	    public void setRisqueMeteo(double risqueMeteo) { this.risqueMeteo = risqueMeteo; }
-
-	    public int getEclairage() { return eclairage; }
-	    public void setEclairage(int eclairage) { this.eclairage = eclairage; }
-
-	    public int getChantier() { return chantier; }
-	    public void setChantier(int chantier) { this.chantier = chantier; }
 
 	    public int getZonePietonne() { return zonePietonne; }
 	    public void setZonePietonne(int zonePietonne) { this.zonePietonne = zonePietonne; }
@@ -128,9 +105,6 @@ public class Arc {
 
 	        d.put("temps_marche", tempsMarche);
 	        d.put("risque_pieton", risquePieton);
-	        d.put("risque_meteo", risqueMeteo);
-	        d.put("eclairage", eclairage);
-	        d.put("chantier", chantier);
 	        d.put("zone_pietonne", zonePietonne);
 	        d.put("zone_empruntable", zoneEmpruntable);
 	        d.put("confort_pieton", confortPieton);

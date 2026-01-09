@@ -2,112 +2,211 @@ package fr.insa.projetIntegrateur.RoutingService.algorithms;
 
 import fr.insa.projetIntegrateur.RoutingService.model.*;
 import fr.insa.projetIntegrateur.RoutingService.utils.Haversine;
+
 import java.util.*;
 
+/**
+ * A* with constraints (security/comfort/difficulty filters).
+ *
+ * Robust version:
+ * - Does NOT rely on PriorityQueue re-heapify on external mutable maps.
+ * - Uses immutable queue entries + lazy skipping of outdated entries.
+ * - Defensive checks for null nodes, null adjacency lists, NaN/Inf, negative lengths.
+ * - Allows "re-open" naturally (no hard closedSet), so it is safe even if heuristic is not consistent.
+ */
 public class ConstrainedAstar {
 
+    /** Small tolerance used in your project logic. */
+    private static final double TOL = 0.05;
+
+    /** Priority queue entry (immutable). */
+    private static final class QEntry {
+        final long nodeId;
+        final double g;   // best known cost from start at the time of insertion
+        final double f;   // g + h
+
+        QEntry(long nodeId, double g, double f) {
+            this.nodeId = nodeId;
+            this.g = g;
+            this.f = f;
+        }
+    }
+
     /**
-     * Calculates the shortest path using A* heuristic, but only traversing arcs 
+     * Calculates the shortest path using A* heuristic, but only traversing arcs
      * that satisfy the user's security, comfort, and difficulty constraints.
+     *
+     * @return List of nodes from start to goal (inclusive) or empty list if no path.
      */
-    public List<Noeud> shortestPath(Graph graphe, long startId, long goalId, 
-                                  double minSecurity, double minComfort, double minDifficulty) {
+    public List<Noeud> shortestPath(Graph graphe,
+                                    long startId,
+                                    long goalId,
+                                    int type,
+                                    double minSecurity,
+                                    double minComfort,
+                                    double minDifficulty) {
+
+        if (graphe == null) return Collections.emptyList();
 
         Noeud start = graphe.getNoeud(startId);
         Noeud goal = graphe.getNoeud(goalId);
-
         if (start == null || goal == null) return Collections.emptyList();
 
-        // Standard A* Maps
-        Map<Long, Double> gScore = new HashMap<>(); // Cost from start
-        Map<Long, Double> fScore = new HashMap<>(); // Cost from start + Heuristic to end
-        Map<Long, Arc> cameFrom = new HashMap<>();  // To reconstruct path
-
-        // Initialize scores
-        for (Noeud n : graphe.getNoeuds()) {
-            gScore.put(n.getId(), Double.POSITIVE_INFINITY);
-            fScore.put(n.getId(), Double.POSITIVE_INFINITY);
+        if (startId == goalId) {
+            return Collections.singletonList(start);
         }
 
+        // gScore: best known cost from start to each nodeId
+        Map<Long, Double> gScore = new HashMap<>();
         gScore.put(startId, 0.0);
-        fScore.put(startId, Haversine.distance(start.getLat(), start.getLon(), goal.getLat(), goal.getLon()));
 
-        // PriorityQueue ordered by fScore (Estimation)
-        PriorityQueue<Noeud> openSet = new PriorityQueue<>(Comparator.comparingDouble(n -> fScore.get(n.getId())));
-        openSet.add(start);
+        // cameFrom: for each nodeId, store the arc used to reach it with best gScore
+        Map<Long, Arc> cameFrom = new HashMap<>();
 
-        Set<Long> closedSet = new HashSet<>();
+        // Open set: ordered by smallest f
+        PriorityQueue<QEntry> openSet = new PriorityQueue<>(Comparator.comparingDouble(e -> e.f));
+        openSet.add(new QEntry(startId, 0.0, heuristic(start, goal)));
 
         while (!openSet.isEmpty()) {
-            Noeud current = openSet.poll();
-            if (closedSet.contains(current.getId())) continue;
+            QEntry cur = openSet.poll();
 
-            if (current.getId() == goalId) {
-                return reconstructPath(cameFrom, current);
+            // Lazy skip: if this entry is not the current best g for node, discard it.
+            double bestKnownG = gScore.getOrDefault(cur.nodeId, Double.POSITIVE_INFINITY);
+            if (cur.g != bestKnownG) {
+                continue;
             }
 
-            closedSet.add(current.getId());
+            if (cur.nodeId == goalId) {
+                return reconstructPath(graphe, cameFrom, startId, goalId);
+            }
 
-            for (Arc arc : graphe.getAdjacents(current.getId())) {
+            List<Arc> arcs = graphe.getAdjacents(cur.nodeId);
+            if (arcs == null || arcs.isEmpty()) {
+                continue;
+            }
 
-                if (!isArcValid(arc, minSecurity, minComfort, minDifficulty)) continue;
+            for (Arc arc : arcs) {
+                if (arc == null) continue;
+            	int T =arc.getType_route();
+            	if (T != type && T !=2 ) continue; 
+                if (!isArcValid(arc,type, minSecurity, minComfort, minDifficulty)) {
+                    continue;
+                }
 
-                Noeud neighbor = arc.getDestination();
-                double tentativeG = gScore.get(current.getId()) + arc.getLongueur();
+                double w = arc.getLongueur();
+                if (!Double.isFinite(w)) {
+                    // Invalid weight; skip to avoid NaN poisoning
+                    continue;
+                }
+                if (w < 0.0) {
+                    // Dijkstra/A* require non-negative weights for correctness
+                    throw new IllegalArgumentException("Negative arc length encountered: " + w);
+                }
 
-                if (tentativeG < gScore.get(neighbor.getId())) {
-                    cameFrom.put(neighbor.getId(), arc);
-                    gScore.put(neighbor.getId(), tentativeG);
+                Noeud to = arc.getDestination();
+                if (to == null) continue;
 
-                    double h = Haversine.distance(
-                        neighbor.getLat(), neighbor.getLon(),
-                        goal.getLat(), goal.getLon()
-                    );
-//                    h =0.0;
-                    fScore.put(neighbor.getId(), tentativeG + h);
+                long v = to.getId();
+                double tentativeG = cur.g + w;
 
-                    openSet.add(neighbor);
+                double oldG = gScore.getOrDefault(v, Double.POSITIVE_INFINITY);
+                if (tentativeG < oldG) {
+                    gScore.put(v, tentativeG);
+                    cameFrom.put(v, arc);
+
+                    double f = tentativeG + heuristic(to, goal);
+                    openSet.add(new QEntry(v, tentativeG, f));
                 }
             }
-        
         }
 
-        return Collections.emptyList(); // No path found matching constraints
+        return Collections.emptyList();
+    }
+
+    /** Heuristic: great-circle distance (meters-like) between node and goal. */
+    private double heuristic(Noeud node, Noeud goal) {
+        double h = Haversine.distance(node.getLat(), node.getLon(), goal.getLat(), goal.getLon());
+        if (!Double.isFinite(h) || h < 0.0) return 0.0;
+        return h;
     }
 
     /**
- * Checks if the arc satisfies the range [0.0, 1.0 - (userValue - 0.05)]
- * for the Security indicator (since lower = safer),
- * and [userValue - 0.05, 1.0] for Comfort and Difficulty.
- */
-    private boolean isArcValid(Arc arc, double userSec, double userConf, double userDiff) {
-        double thresSec = Math.max(0.0, userSec - 0.05);
-        double thresConf = Math.max(0.0, userConf - 0.05);
-        double thresDiff = Math.max(0.0, userDiff - 0.05);
+     * Validates an arc against user requirements.
+     *
+     * IMPORTANT (based on your tests): values are treated as "higher is better".
+     * - arcSecurity must be >= (minSecurity - 0.05)
+     * - arcComfort  must be >= (minComfort  - 0.05)
+     * - arcDifficulty must be >= (minDifficulty - 0.05)
+     *
+     * Also enforces that attributes are finite and within [0, 1].
+     */
+    private boolean isArcValid(Arc arc, int type,double minSecurity, double minComfort, double minDifficulty) {
+        double thresSec = clamp01(minSecurity - TOL);
+        double thresConf = clamp01(minComfort - TOL);
+        double thresDiff = clamp01(minDifficulty - TOL);
+        double arcSec =0.0;
+        double arcConf =0.0;
+        double arcDiff =0.0;
+        
+        switch (type) {
+	        case 0:
+	            arcSec = arc.getRisquePieton();
+	            arcConf = arc.getConfortPieton();
+	            arcDiff = arc.getDiffPieton();
+	            break;
+	        case 1:
+	            arcSec = arc.getRisqueVelo();
+	            arcConf = arc.getConfortVelo();
+	            arcDiff = arc.getDiffVelo();
+	            break;
+            default:
+                arcSec = arc.getRisquePieton();
+                arcConf = arc.getConfortPieton();
+                arcDiff = arc.getDiffPieton();
+        }
+        	
+        if (!isFinite01(arcSec) || !isFinite01(arcConf) || !isFinite01(arcDiff)) {
+            return false;
+        }
 
-        // Security (Mapped to risquePieton: lower = safer)
-        // Accept arcs only if risk ≤ (1.0 - threshold)
-        if (arc.getRisquePieton() < thresSec || arc.getRisquePieton() > 1.0) return false;
-
-        // Comfort
-        if (arc.getConfortPieton() < thresConf || arc.getConfortPieton() > 1.0) return false;
-
-        // Difficulty
-        if (arc.getDiffPieton() < thresDiff || arc.getDiffPieton() > 1.0) return false;
-
-        return true;
+        return arcSec >= thresSec && arcConf >= thresConf && arcDiff >= thresDiff;
     }
 
-    private List<Noeud> reconstructPath(Map<Long, Arc> cameFrom, Noeud goal) {
-    	LinkedList<Noeud> path = new LinkedList<>();
-        Noeud current = goal;
+    private static boolean isFinite01(double x) {
+        return Double.isFinite(x) && x >= 0.0 && x <= 1.0;
+    }
+
+    private static double clamp01(double x) {
+        if (!Double.isFinite(x)) return 0.0;
+        if (x < 0.0) return 0.0;
+        if (x > 1.0) return 1.0;
+        return x;
+    }
+
+    /**
+     * Reconstructs node path from startId to goalId using cameFrom map (nodeId -> arc used).
+     * Returns empty list if reconstruction fails (should not happen when algorithm is correct).
+     */
+    private List<Noeud> reconstructPath(Graph graphe, Map<Long, Arc> cameFrom, long startId, long goalId) {
+        LinkedList<Noeud> path = new LinkedList<>();
+
+        long currentId = goalId;
+        Noeud current = graphe.getNoeud(currentId);
+        if (current == null) return Collections.emptyList();
 
         path.addFirst(current);
 
-        while (cameFrom.containsKey(current.getId())) {
-            Arc arc = cameFrom.get(current.getId());
-            current = arc.getOrigine();
-            path.addFirst(current);
+        while (currentId != startId) {
+            Arc arc = cameFrom.get(currentId);
+            if (arc == null) {
+                // No predecessor => cannot reconstruct
+                return Collections.emptyList();
+            }
+            Noeud prev = arc.getOrigine();
+            if (prev == null) return Collections.emptyList();
+
+            currentId = prev.getId();
+            path.addFirst(prev);
         }
 
         return path;

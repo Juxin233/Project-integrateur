@@ -4,10 +4,11 @@ import fr.insa.projetIntegrateur.RoutingService.model.*;
 import java.util.*;
 
 public class ConstrainedDijkstra {
+    private static final double TOL = 0.05;
 
     private static class NodeDist implements Comparable<NodeDist> {
-        long nodeId;
-        double dist;
+        final long nodeId;
+        final double dist;
 
         NodeDist(long nodeId, double dist) {
             this.nodeId = nodeId;
@@ -20,34 +21,32 @@ public class ConstrainedDijkstra {
         }
     }
 
-    /**
-     * Calculates the shortest path considering only arcs that meet the user's attribute requirements.
-     *
-     * @param g            The graph
-     * @param startId      Start Node ID
-     * @param endId        End Node ID
-     * @param minSecurity  User preference for Security (0-1)
-     * @param minComfort   User preference for Comfort (0-1)
-     * @param minDifficulty User preference for Difficulty (0-1)
-     * @return List of Arcs forming the path, or empty if no path exists.
-     */
-    public List<Noeud> shortestPath(Graph g, long startId, long endId, 
-                                  double minSecurity, double minComfort, double minDifficulty) {
-        
-        // 1. Setup Standard Dijkstra structures
+    public List<Noeud> shortestPath(Graph g,
+                                    long startId,
+                                    long endId,
+                                    int type,
+                                    double minSecurity,
+                                    double minComfort,
+                                    double minDifficulty) {
+
+        if (g == null) return Collections.emptyList();
+        Noeud start = g.getNoeud(startId);
+        Noeud goal = g.getNoeud(endId);
+        if (start == null || goal == null) return Collections.emptyList();
+        if (startId == endId) return Collections.singletonList(start);
+
         Map<Long, Double> dist = new HashMap<>();
         Map<Long, Arc> prevArc = new HashMap<>();
         Set<Long> visited = new HashSet<>();
         PriorityQueue<NodeDist> pq = new PriorityQueue<>();
 
-        // 2. Initialize
+        // init (keep your style)
         for (Noeud n : g.getNoeuds()) {
             dist.put(n.getId(), Double.POSITIVE_INFINITY);
         }
         dist.put(startId, 0.0);
         pq.add(new NodeDist(startId, 0.0));
 
-        // 3. Main Loop
         while (!pq.isEmpty()) {
             NodeDist current = pq.poll();
             long u = current.nodeId;
@@ -55,70 +54,115 @@ public class ConstrainedDijkstra {
             if (visited.contains(u)) continue;
             visited.add(u);
 
-            if (u == endId) break; 
+            if (u == endId) break;
 
-            // 4. Explore Neighbors with FILTERING
-            for (Arc arc : g.getAdjacents(u)) {
-                
-                // --- THE CONSTRAINT CHECK ---
-                if (!isArcValid(arc, minSecurity, minComfort, minDifficulty)) {
-                    continue; // Skip this arc, it doesn't meet user preferences
-                }
-                // ----------------------------
+            List<Arc> adj = g.getAdjacents(u);
+            if (adj == null || adj.isEmpty()) continue;
 
-                long v = arc.getDestination().getId();
-                double newDist = dist.get(u) + arc.getLongueur(); // Classic scalar cost (Distance)
+            double du = dist.getOrDefault(u, Double.POSITIVE_INFINITY);
 
-                if (newDist < dist.getOrDefault(v, Double.POSITIVE_INFINITY)) {
-                    dist.put(v, newDist);
+            for (Arc arc : adj) {
+                if (arc == null) continue;
+
+                int roadType = arc.getType_route();
+                if (roadType != type && roadType != 2) continue;
+
+                if (!isArcValid(arc, type, minSecurity, minComfort, minDifficulty)) continue;
+
+                Noeud dest = arc.getDestination();
+                if (dest == null) continue;
+
+                double w = arc.getLongueur();
+                if (!Double.isFinite(w)) continue;
+                if (w < 0.0) throw new IllegalArgumentException("Negative arc length: " + w);
+
+                long v = dest.getId();
+                double nd = du + w;
+
+                if (nd < dist.getOrDefault(v, Double.POSITIVE_INFINITY)) {
+                    dist.put(v, nd);
                     prevArc.put(v, arc);
-                    pq.add(new NodeDist(v, newDist));
+                    pq.add(new NodeDist(v, nd));
                 }
             }
         }
 
-        // 5. Reconstruct Path
-        return reconstructPath(prevArc, g.getNoeud(startId),g.getNoeud(endId));
+        // If unreachable, return empty (instead of attempting reconstruction)
+        if (!prevArc.containsKey(endId)) return Collections.emptyList();
+
+        return reconstructPath(g, prevArc, startId, endId);
     }
 
-    /**
-     * Checks if the arc satisfies the range [UserValue - 0.05, 1.0] for all 3 indicators.
-     */
-    private boolean isArcValid(Arc arc, double userSec, double userConf, double userDiff) {
-        // Calculate thresholds
-        double thresSec = Math.max(0.0, userSec - 0.05);
-        double thresConf = Math.max(0.0, userConf - 0.05);
-        double thresDiff = Math.max(0.0, userDiff - 0.05);
+    private boolean isArcValid(Arc arc,
+                              int type,
+                              double minSecurity,
+                              double minComfort,
+                              double minDifficulty) {
 
+        double thresSec = clamp01(minSecurity - TOL);
+        double thresConf = clamp01(minComfort - TOL);
+        double thresDiff = clamp01(minDifficulty - TOL);
 
-        // Check Security (Mapped to risquePieton)
-        double arcSec = arc.getRisquePieton(); 
-        if (arcSec < thresConf || arcSec > 1.0)  return false;
+        double arcSec;
+        double arcConf;
+        double arcDiff;
 
-        // Check Comfort
-        double arcConf = arc.getConfortPieton();
-        if (arcConf < thresConf || arcConf > 1.0) return false;
+        switch (type) {
+            case 0:
+                arcSec = arc.getRisquePieton();
+                arcConf = arc.getConfortPieton();
+                arcDiff = arc.getDiffPieton();
+                break;
+            case 1:
+                arcSec = arc.getRisqueVelo();
+                arcConf = arc.getConfortVelo();
+                arcDiff = arc.getDiffVelo();
+                break;
+            default:
+                arcSec = arc.getRisquePieton();
+                arcConf = arc.getConfortPieton();
+                arcDiff = arc.getDiffPieton();
+                break;
+        }
 
-        // Check Difficulty
-        double arcDiff = arc.getDiffPieton();
-        if (arcDiff < thresDiff || arcDiff > 1.0) return false;
+        if (!isFinite01(arcSec) || !isFinite01(arcConf) || !isFinite01(arcDiff)) {
+            return false;
+        }
 
-        return true;
+        return arcSec >= thresSec && arcConf >= thresConf && arcDiff >= thresDiff;
     }
 
-    private List<Noeud> reconstructPath(Map<Long, Arc> prevArc, Noeud start,Noeud end) {
-    	LinkedList<Noeud> path = new LinkedList<>();
-        Long cur = end.getId();
-        while (prevArc.containsKey(cur)) {
-            Arc arc = prevArc.get(cur);
-            path.addFirst(arc.getDestination());
-            cur = arc.getOrigine().getId();
+    private static boolean isFinite01(double x) {
+        return Double.isFinite(x) && x >= 0.0 && x <= 1.0;
+    }
+
+    private static double clamp01(double x) {
+        if (!Double.isFinite(x)) return 0.0;
+        if (x < 0.0) return 0.0;
+        if (x > 1.0) return 1.0;
+        return x;
+    }
+
+    private List<Noeud> reconstructPath(Graph graphe, Map<Long, Arc> cameFrom, long startId, long goalId) {
+        LinkedList<Noeud> path = new LinkedList<>();
+
+        long currentId = goalId;
+        Noeud current = graphe.getNoeud(currentId);
+        if (current == null) return Collections.emptyList();
+
+        path.addFirst(current);
+
+        while (currentId != startId) {
+            Arc arc = cameFrom.get(currentId);
+            if (arc == null) return Collections.emptyList();
+
+            Noeud prev = arc.getOrigine();
+            if (prev == null) return Collections.emptyList();
+
+            currentId = prev.getId();
+            path.addFirst(prev);
         }
-        path.addFirst(start);
-        if (!prevArc.containsKey(end.getId()) && start.getId() != end.getId()) {
-            System.out.println("No path found between start and end!");
-            return Collections.emptyList();
-        }
+
         return path;
     }
 }

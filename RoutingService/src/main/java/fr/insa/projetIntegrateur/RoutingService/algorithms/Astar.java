@@ -9,7 +9,7 @@ import java.util.*;
 
 public class Astar {
 
-    public List<Noeud> shortestPath(Graph graphe, long startId, long goalId) {
+    public List<Noeud> shortestPath(Graph graphe, long startId, long goalId, int type) {
 
         Noeud start = graphe.getNoeud(startId);
         Noeud goal = graphe.getNoeud(goalId);
@@ -45,7 +45,9 @@ public class Astar {
             closedSet.add(current.getId());
 
             for (Arc arc : graphe.getAdjacents(current.getId())) {
-                Noeud neighbor = arc.getDestination();
+            	int T =arc.getType_route();
+            	if (T != type && T !=2 ) continue; 
+            	Noeud neighbor = arc.getDestination();
 
                 if (closedSet.contains(neighbor.getId())) continue;
 

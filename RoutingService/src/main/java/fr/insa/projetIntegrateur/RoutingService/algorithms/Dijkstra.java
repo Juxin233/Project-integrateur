@@ -26,7 +26,7 @@ public class Dijkstra {
      * @param endId ID du noeud d'arrivée
      * @return liste des arcs formant le chemin le plus court, ou vide si pas de chemin
      */
-    public List<Noeud> shortestPath(Graph g, long startId, long endId) {
+    public List<Noeud> shortestPath(Graph g, long startId, long endId, int type) {
         // Map : noeud -> distance depuis start
         Map<Long, Double> dist = new HashMap<>();
         // Map : noeud -> arc précédent pour reconstruire le chemin
@@ -77,6 +77,8 @@ public class Dijkstra {
 //            System.out.println(arcs.size());
             if(arcs == null) continue;
             for (Arc arc : arcs) {
+            	int T =arc.getType_route();
+            	if (T != type && T !=2 ) continue; 
                 long v = arc.getDestination().getId();
                 double alt = dist.get(u) + arc.getLongueur();
 
