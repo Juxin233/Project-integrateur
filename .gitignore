@@ -1,1 +1,22 @@
 /.metadata/
+
+# --- IDEs (IntelliJ .idea) ---
+.idea/
+*.iml
+*.iws
+
+# --- IDEs (VS Code) ---
+.vscode/
+
+# --- IDEs (Eclipse) ---
+.settings/
+.project
+.classpath
+.factorypath
+
+# --- SYSTEM FILES ---
+.DS_Store
+Thumbs.db
+
+# --- LOGS ---
+*.log
