@@ -6,17 +6,17 @@ public class Itinerary {
 	//-------------------------------- FIELDS --------------------------------//
 	
 	//id field
-	private int idItinerary;
+	private Integer idItinerary;
 	
 	//itinerary returned by the routing service, stored as a json in the db
 	private String itineraryCol;
 	
 	//user that queried the itinerary
-	private int idUser;
+	private Integer idUser;
 	
 	//-------------------------------- CONSTRUCTORS --------------------------------//
 	
-	public Itinerary(int idItinerary, String itineraryCol, int idUser) {
+	public Itinerary(Integer idItinerary, String itineraryCol, Integer idUser) {
 		this.idItinerary = idItinerary;
 		this.itineraryCol = itineraryCol;
 		this.idUser = idUser;
@@ -27,10 +27,10 @@ public class Itinerary {
 	
 	//-------------------------------- GETTERS/SETTERS --------------------------------//
 	
-	public int getIdItinerary() {
+	public Integer getIdItinerary() {
 		return idItinerary;
 	}
-	public void setIdItinerary(int idItinerary) {
+	public void setIdItinerary(Integer idItinerary) {
 		this.idItinerary = idItinerary;
 	}
 	public String getItineraryCol() {
@@ -39,10 +39,10 @@ public class Itinerary {
 	public void setItineraryCol(String itineraryCol) {
 		this.itineraryCol = itineraryCol;
 	}
-	public int getIdUser() {
+	public Integer getIdUser() {
 		return idUser;
 	}
-	public void setIdUser(int idUser) {
+	public void setIdUser(Integer idUser) {
 		this.idUser = idUser;
 	}
 	

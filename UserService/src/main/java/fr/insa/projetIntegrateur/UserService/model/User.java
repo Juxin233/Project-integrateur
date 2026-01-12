@@ -4,7 +4,7 @@ public class User {
 	//-------------------------------- FIELDS --------------------------------//
 	
 	//id field
-	private int idUser;
+	private Integer idUser;
 	
 	//'classic' fields
 	private String firstName;
@@ -13,7 +13,7 @@ public class User {
 	private String email;
 	
 	//profile related fields
-	private int idProfileDefault; //id of the preferred/actual default user profile among the FIXED ones!!!
+	private Integer idProfileDefault; //id of the preferred/actual default user profile among the FIXED ones!!!
 	private String customProfile; //custom profile of the user defined using a slider, stored in db as json so string here
 	
 	//other fields
@@ -32,11 +32,11 @@ public class User {
 	
 	//-------------------------------- GETTERS/SETTERS --------------------------------//
 	
-	public int getIdUser() {
+	public Integer getIdUser() {
 		return idUser;
 	}
 	
-	public void setIdUser(int idUser) {
+	public void setIdUser(Integer idUser) {
 		this.idUser = idUser;
 	}
 
@@ -72,11 +72,11 @@ public class User {
 		this.email = email;
 	}
 
-	public int getIdProfileDefault() {
+	public Integer getIdProfileDefault() {
 		return idProfileDefault;
 	}
 
-	public void setIdProfileDefault(int idProfileDefault) {
+	public void setIdProfileDefault(Integer idProfileDefault) {
 		this.idProfileDefault = idProfileDefault;
 	}
 	

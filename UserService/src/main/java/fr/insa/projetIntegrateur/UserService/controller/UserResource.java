@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import fr.insa.projetIntegrateur.UserService.model.Itinerary;
+import fr.insa.projetIntegrateur.UserService.model.LoginRequest;
 import fr.insa.projetIntegrateur.UserService.model.Profile;
 import fr.insa.projetIntegrateur.UserService.model.User;
 import fr.insa.projetIntegrateur.UserService.repository.UserRepository;
@@ -62,20 +63,32 @@ public class UserResource {
         return userRepository.getUserByEmail(email);
     }
     
-    @GetMapping("/get/profileDefault/{idUser}")
+    @GetMapping("/get/password/{id}")
+    public String getUserPasswordById(@PathVariable int id) {
+        return userRepository.getUserPasswordById(id);
+    }
+    
+    @GetMapping("/get/profileDefault/{id}")
     public Profile getUserProfileDefaultById(@PathVariable int id) {
         return userRepository.getUserProfileDefaultById(id);
     }
     
-    @GetMapping("/get/customProfile/{idUser}")
+    @GetMapping("/get/customProfile/{id}")
     public String getUserCustomProfileById(@PathVariable int id) {
         return userRepository.getUserCustomProfileById(id);
     }
     
-    @GetMapping("/get/Itineraries/{idUser}")
+    @GetMapping("/get/Itineraries/{id}")
     public List<Itinerary> getItinerariesById(@PathVariable int id) {
         return userRepository.getItinerariesById(id);
     }
+    
+    /*
+    @GetMapping("/get/login/{email}&{password}")
+    public List<User> verifyLogin(@PathVariable String email, @PathVariable String password) {
+        return userRepository.verifyLogin(email, password);
+    }
+    */
     
     //-------------------------------- POST METHODS --------------------------------//
     
@@ -85,11 +98,16 @@ public class UserResource {
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
     
-    @PostMapping("post/itinerary")
+    @PostMapping("/post/itinerary")
     public ResponseEntity<Itinerary> addNewItinerary(@RequestBody Itinerary itinerary) {
     	Itinerary saved = userRepository.addNewItinerary(itinerary);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     } 
+    
+    @PostMapping("/login")
+    public List<User> verifyLogin(@RequestBody LoginRequest loginReq) {
+        return userRepository.verifyLogin(loginReq.getEmail(), loginReq.getPassword());
+    }
     
     //-------------------------------- PUT METHODS --------------------------------//
     
@@ -125,7 +143,7 @@ public class UserResource {
         return ResponseEntity.ok("Email replaced successfully.");
     }
     
-    @PutMapping("/replace/profileDef/{id}")
+    @PutMapping("/replace/profileDefault/{id}")
     public ResponseEntity<String> replaceProfileDefault(
             @PathVariable int id, 
             @RequestBody int idProfileDefault) {

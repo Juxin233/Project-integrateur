@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -154,34 +155,48 @@ public class UserRepository {
         );
     }
     
+    public String getUserPasswordById(int id) {
+        return jdbcTemplate.queryForObject(
+        		"SELECT password FROM User WHERE idUser = ?",
+                new Object[]{id},
+                (rs, rowNum) -> {
+                    return rs.getString("password");
+                }
+        );
+    }
+    
     public Profile getUserProfileDefaultById(int id) {
         String sql = "SELECT p.idProfile, p.profileName, p.profileVector " +
                      "FROM Profile p " +
                      "JOIN User u ON u.idProfileDefault = p.idProfile " +
                      "WHERE u.idUser = ?";
 
-        return jdbcTemplate.queryForObject(
-                sql,
-                new Object[]{id},
-                (rs, rowNum) -> {
-                    Profile p = new Profile();
-                    p.setIdProfile(rs.getInt("idProfile"));
-                    p.setProfileName(rs.getString("profileName"));
-                    p.setProfileVector(rs.getString("profileVector"));
-                    return p;
-                }
-        );
+        try {
+            return jdbcTemplate.queryForObject(sql, new Object[]{id}, (rs, rowNum) -> {
+                Profile p = new Profile();
+                p.setIdProfile(rs.getInt("idProfile"));
+                p.setProfileName(rs.getString("profileName"));
+                p.setProfileVector(rs.getString("profileVector"));
+                return p;
+            });
+        } catch (EmptyResultDataAccessException e) {
+            return null; 
+        }
     }
     
     public String getUserCustomProfileById(int id) {
-        return jdbcTemplate.queryForObject(
-        		"SELECT customProfile FROM User WHERE idUser = ?",
+        try {
+            return jdbcTemplate.queryForObject(
+                "SELECT customProfile FROM User WHERE idUser = ?",
                 new Object[]{id},
                 (rs, rowNum) -> {
-                    // rs.getString() works perfectly for JSON fields in MySQL
                     return rs.getString("customProfile");
                 }
-        );
+            );
+        } catch (EmptyResultDataAccessException e) {
+            // Return null or an empty JSON string "{}" if the user isn't found
+            return null; 
+        }
     }
     
     public List<Itinerary> getItinerariesById(int id) {
@@ -190,7 +205,7 @@ public class UserRepository {
                 new Object[]{id},
                 (rs, rowNum) -> {
                     Itinerary it = new Itinerary();
-                    it.setIdUser(rs.getInt("idUser"));
+                    it.setIdItinerary(rs.getInt("idItinerary"));
                     it.setItineraryCol(rs.getString("itineraryCol"));
                     it.setIdUser(rs.getInt("idUser"));
                     
@@ -229,7 +244,7 @@ public class UserRepository {
 
         //we do not define the profiles at this stage since this is a brand new user
         jdbcTemplate.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(sql, new String[] {"idUser"});
+            PreparedStatement ps = connection.prepareStatement(sql, new String[] {"idItinerary"});
             ps.setString(1, itinerary.getItineraryCol());
             ps.setInt(2, itinerary.getIdUser());
             return ps;
@@ -239,6 +254,34 @@ public class UserRepository {
         itinerary.setIdItinerary(keyHolder.getKey().intValue());
 
         return itinerary;
+    }
+    
+    public List<User> verifyLogin(String email, String password) {
+        try {
+        	return jdbcTemplate.query(
+                    "SELECT * FROM User WHERE email = ? AND password = ?",
+                    new Object[]{email, password},
+                    (rs, rowNum) -> {
+                        User e = new User();
+                        e.setIdUser(rs.getInt("idUser"));
+                        e.setFirstName(rs.getString("firstName"));
+                        e.setLastName(rs.getString("lastName"));
+                        e.setPassword(rs.getString("password"));
+                        e.setEmail(rs.getString("email"));
+                        
+                        //fixed profile
+                        e.setIdProfileDefault(rs.getInt("idProfileDefault"));
+                        
+                        //custom profile
+                        e.setCustomProfile(rs.getString("customProfile"));
+                        
+                        return e;
+                    }
+            );
+        } catch (EmptyResultDataAccessException e) {
+            // Return null or an empty JSON string "{}" if the user isn't found
+            return null; 
+        }
     }
 	    
 	//-------------------------------- PUT METHODS --------------------------------//
