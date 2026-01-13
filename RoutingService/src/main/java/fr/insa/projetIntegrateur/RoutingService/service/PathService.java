@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import fr.insa.projetIntegrateur.RoutingService.model.Arc;
 import fr.insa.projetIntegrateur.RoutingService.utils.GeoJsonLoader;
+import fr.insa.projetIntegrateur.RoutingService.utils.PostgreLoader;
 import fr.insa.projetIntegrateur.RoutingService.algorithms.Astar;
 import fr.insa.projetIntegrateur.RoutingService.algorithms.ConstrainedAstar;
 import fr.insa.projetIntegrateur.RoutingService.algorithms.ConstrainedDijkstra;
@@ -19,7 +20,8 @@ public class PathService {
 	    private Graph graphe;
 	    
 	    public PathService() throws Exception {
-	        this.graphe = new GeoJsonLoader().charger("toulouse_graph_nodes_edges_area_Toulouse_2025-11-27.geojson");
+//	        this.graphe = new GeoJsonLoader().charger("toulouse_graph_nodes_edges_area_Toulouse_2025-11-27.geojson");
+	    	this.graphe = PostgreLoader.loadMap();
 	        if (graphe.getNombreNoeuds() > 0 && graphe.getNombreArcs() > 0) {
 	            System.out.println("✅ Graph loaded successfully!");
 	            System.out.printf("Nodes: %d, Arcs: %d%n", graphe.getNombreNoeuds(), graphe.getNombreArcs());

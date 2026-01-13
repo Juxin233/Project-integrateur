@@ -1,10 +1,7 @@
-package fr.insa.projectIntegrateur.DatabaseService.service;
+package fr.insa.projectIntegrateur.DatabaseService.utils;
 
 import com.fasterxml.jackson.core.*;
 import com.fasterxml.jackson.databind.*;
-
-import fr.insa.projetIntegrateur.RoutingService.model.Arc;
-
 import java.io.InputStream;
 import java.sql.*;
 import java.util.HashSet;
