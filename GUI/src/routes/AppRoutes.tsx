@@ -1,8 +1,9 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
-import ProfilePage from "../pages/ProfilePage";
+import InfoUserPage from "../pages/InfoUserPage";
 import ItineraryPage from "../pages/ItineraryPage";
+import ProtectedRoute from "./ProtectedRoute";
 // // <Route path="/register" element={<RegisterPage />} />h
 
 export default function AppRoutes() {
@@ -11,8 +12,13 @@ export default function AppRoutes() {
       <Routes>
         <Route path="/" element={<LoginPage />} />
        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
         <Route path="/itinerary" element={<ItineraryPage />} />
+      <Route
+          path="/infoUser" element={ <ProtectedRoute>
+ <InfoUserPage />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </BrowserRouter>
   );
