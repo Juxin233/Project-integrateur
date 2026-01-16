@@ -21,6 +21,7 @@ public class ConstrainedRoutingTest {
     private long idCounter = 0; // To generate unique IDs for Arcs
     
     private double computePathLength(Graph g, List<Noeud> path) {
+        if (path == null || path.isEmpty()) return 0.0;
         double length = 0.0;
         for (int i = 0; i < path.size() - 1; i++) {
             Noeud from = path.get(i);
@@ -93,10 +94,10 @@ public class ConstrainedRoutingTest {
             "test_road", 
             ++idCounter, // Generate ID
             security,    // risquePieton
-            0.0,         // risqueVelo (unused)
+            0.0,
             comfort,     // confortPieton
-            0.0,         // confortVelo (unused)
-            0.0,         // diffVelo (unused)
+            0.0,
+            0.0,
             diff         // diffPieton
         );
         graph.ajouterArc(a); // Fixed: addArc -> ajouterArc
@@ -136,6 +137,44 @@ public class ConstrainedRoutingTest {
         double totalLength = computePathLength(graph,path);
         // Must take the long direct route
         assertEquals(800, totalLength, 1e-6, "High security should force longer but safer path");
+    }
+
+    @Test
+    void testDijkstra_Relaxation_Logic() {
+        // SCENARIO:
+        // We add a new node 5 connected ONLY to node 4 via a 'Bad' road (Security 0.2).
+        // We request a path from 1 -> 5 with Security 0.8.
+        // 1->4 is safe (0.95). Arriving at 4, the only way out is 4->5 (0.2).
+        // Req 0.8 requires > 0.75. 0.2 is fails.
+        // Algorithm MUST relax constraints at Node 4 until 4->5 becomes valid.
+
+        Noeud n5 = new Noeud(5, 43.60020, 1.44020);
+        graph.ajouterNoeud(n5);
+        addArc(n4, n5, 50, 0.2, 0.5, 0.5); // Very unsafe link
+
+        ConstrainedDijkstra algo = new ConstrainedDijkstra();
+        Reponse result = algo.shortestPath(graph, 1, 5, 2, 0.8, 0.5, 0.5);
+
+        assertFalse(result.getList().isEmpty(), "Path should be found via relaxation");
+        assertTrue(result.getChange(), "Constraints MUST have been relaxed to cross the unsafe arc");
+
+        assertEquals(5, result.path.get(result.path.size()-1).getId());
+    }
+
+    @Test
+    void testAstar_Relaxation_Logic() {
+        // Same scenario as above for A*
+        Noeud n5 = new Noeud(5, 43.60020, 1.44020);
+        graph.ajouterNoeud(n5);
+        addArc(n4, n5, 50, 0.2, 0.5, 0.5);
+
+        ConstrainedAstar algo = new ConstrainedAstar();
+        PathService.PathResult result = algo.shortestPath(graph, 1, 5, 2, 0.8, 0.5, 0.5);
+
+        assertFalse(result.path.isEmpty(), "A* should find path via relaxation");
+        assertTrue(result.constraintsRelaxed, "Constraints MUST have been relaxed");
+
+        assertEquals(5, result.path.get(result.path.size()-1).getId());
     }
 
     @Test

@@ -33,7 +33,6 @@ public class RoutingController {
 
         return service.calculerDijkstra(start, end,2);
     }
-    
     // Existing simple Dijkstra
     @GetMapping("/astar")
     public Reponse astar(
@@ -42,7 +41,6 @@ public class RoutingController {
 
         return service.calculerAstar(start, end,2);
     }
-    
     // NEW: Constrained Dijkstra
     // Example call: /api/route/constrained?start=1&end=10&sec=0.5&conf=0.8&diff=0.2
     @GetMapping("/constrained")

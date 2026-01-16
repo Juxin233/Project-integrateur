@@ -19,7 +19,12 @@ public class ConstrainedAstar {
     /** Small tolerance used in your project logic. */
     private static final double TOL = 0.05;
 
-    /** Priority queue entry (immutable). */
+    // Global variables (instance level)
+    private boolean constraintsRelaxed = false;
+    private double curSec;
+    private double curConf;
+    private double curDiff;
+
     private static final class QEntry {
         final long nodeId;
         final double g;   // best known cost from start at the time of insertion
@@ -77,7 +82,7 @@ public class ConstrainedAstar {
             }
 
             if (cur.nodeId == goalId) {
-                return reconstructPath(graphe, cameFrom, startId, goalId,type);
+                return reconstructPath(graphe, cameFrom, startId, goalId,type,constraintsRelaxed);
             }
 
             List<Arc> arcs = graphe.getAdjacents(cur.nodeId);
@@ -85,23 +90,47 @@ public class ConstrainedAstar {
                 continue;
             }
 
+            // --- RELAXATION LOGIC START ---
+            while (true) {
+                boolean hasValidArc = false;
+                for (Arc arc : arcs) {
+                    if (arc == null) continue;
+                    int T = arc.getType_route();
+                    if (T != type && T != 2) continue;
+                    // Check using global current vector
+                    if (isArcValid(arc, type, this.curSec, this.curConf, this.curDiff)) {
+                        hasValidArc = true;
+                        break;
+                    }
+                }
+
+                if (hasValidArc) break;
+
+                // Stop if all criteria are zero
+                if (this.curSec <= 0 && this.curConf <= 0 && this.curDiff <= 0) break;
+
+                // Reduce non-zero components
+                if (this.curSec > 0) this.curSec = Math.max(0.0, this.curSec - 0.05);
+                if (this.curConf > 0) this.curConf = Math.max(0.0, this.curConf - 0.05);
+                if (this.curDiff > 0) this.curDiff = Math.max(0.0, this.curDiff - 0.05);
+
+                this.constraintsRelaxed = true;
+            }
+            // --- RELAXATION LOGIC END ---
+
             for (Arc arc : arcs) {
                 if (arc == null) continue;
-            	int T =arc.getType_route();
-            	if (T != type && T !=2 ) continue; 
-                if (!isArcValid(arc,type, minSecurity, minComfort, minDifficulty)) {
+                int T = arc.getType_route();
+                if (T != type && T != 2) continue;
+
+                // Use global current vector
+                if (!isArcValid(arc, type, this.curSec, this.curConf, this.curDiff)) {
                     continue;
                 }
 
                 double w = arc.getLongueur();
-                if (!Double.isFinite(w)) {
-                    // Invalid weight; skip to avoid NaN poisoning
-                    continue;
-                }
-                if (w < 0.0) {
-                    // Dijkstra/A* require non-negative weights for correctness
-                    throw new IllegalArgumentException("Negative arc length encountered: " + w);
-                }
+                if (!Double.isFinite(w)) continue;
+                if (w < 0.0) throw new IllegalArgumentException("Negative arc length encountered: " + w);
 
                 Noeud to = arc.getDestination();
                 if (to == null) continue;
@@ -120,7 +149,7 @@ public class ConstrainedAstar {
             }
         }
 
-        return new Reponse(Collections.emptyList(),0,0,0,type,false);
+        return new Reponse(Collections.emptyList(),0,0,0,type,this.constraintsRelaxed);
     }
 
     /** Heuristic: great-circle distance (meters-like) between node and goal. */
@@ -230,7 +259,7 @@ public class ConstrainedAstar {
         confort = confort / counter;
         diff = diff/counter;
         risque = risque/counter;
-        
-        return new Reponse(path,confort,diff,risque,type,false);
+
+        return new Reponse(path,confort,diff,risque,type,this.constraintsRelaxed);
     }
 }

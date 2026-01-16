@@ -15,6 +15,9 @@ import fr.insa.projetIntegrateur.RoutingService.algorithms.Astar;
 import fr.insa.projetIntegrateur.RoutingService.algorithms.ConstrainedAstar;
 import fr.insa.projetIntegrateur.RoutingService.algorithms.ConstrainedDijkstra;
 import fr.insa.projetIntegrateur.RoutingService.algorithms.Dijkstra;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class PathService {
@@ -35,8 +38,8 @@ public class PathService {
 	    public Reponse calculerDijkstra(long start, long end,int type) {
 	        return new Dijkstra().shortestPath(graphe, start, end,type);
 	    }
-	    
-	    
+
+
 	    public Reponse calculerAstar(long start, long end,int type) {
 	        return new Astar().shortestPath(graphe, start, end,type);
 	    }
@@ -45,7 +48,7 @@ public class PathService {
 			ConstrainedDijkstra algo = new ConstrainedDijkstra();
 			return algo.shortestPath(graphe, start, end, type,sec, conf, diff);
 		}
-		
+
         public Reponse calculerCheminFiltreAstar(long start, long end,int type,double sec, double conf, double diff) {
             	ConstrainedAstar algoAstar = new ConstrainedAstar();
             	return algoAstar.shortestPath(graphe, start, end, type, sec, conf, diff);

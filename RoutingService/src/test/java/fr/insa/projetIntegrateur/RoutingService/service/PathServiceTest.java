@@ -12,8 +12,8 @@ import fr.insa.projetIntegrateur.RoutingService.model.Reponse;
 
 class PathServiceTest {
 
-	@Test
-	 void testCalculerAStar() throws Exception {
+    @Test
+    void testCalculerAStar() throws Exception {
         PathService service = new PathService();
         long startId = 5561695614L;
         long endId = 13334782210L;
@@ -22,6 +22,13 @@ class PathServiceTest {
         Reponse cheminA= service.calculerAstar(startId, endId,2);
         Reponse cheminConstrainedDijkstra=service.calculerCheminFiltre(startId, endId, 2, 0.55, 0.5, 0.5);
         Reponse cheminConstrainedA=service.calculerCheminFiltreAstar(startId, endId, 2, 0.55, 0.5, 0.5);
+        System.out.print("Dijkstra: " + cheminDijkstra + "\n");
+        System.out.print("A*: " + cheminA + "\n");
+        System.out.print("Constrained Dijkstra Path: " + cheminConstrainedDijkstra + "\n");
+        System.out.print("Constrained A* Path: " + cheminConstrainedA + "\n");
+        System.out.print("Relaxed (Dijkstra): " + resConstrainedDijkstra.constraintsRelaxed + "\n");
+        System.out.print("Relaxed (A*): " + resConstrainedA.constraintsRelaxed + "\n");
+
         System.out.print(cheminDijkstra.getList());
         System.out.println(cheminDijkstra.getConfort()+" "+cheminDijkstra.getDiff()+" "+cheminDijkstra.getRisque());
         System.out.print("\n");
@@ -44,6 +51,15 @@ class PathServiceTest {
         assertEquals(startId, cheminConstrainedA.getList().get(0).getId());
         assertEquals(endId, cheminConstrainedA.getList().get(cheminConstrainedA.getList().size() - 1).getId());
         assertEquals(cheminDijkstra.getList(),cheminConstrainedA.getList());
+
+        // In this test, assuming constraints are loose enough to find a path without relaxation,
+        // or effectively verifying that they at least return consistent results.
+        // We verify that the path service returns the correct structure.
+        assertNotNull(resConstrainedDijkstra);
+        assertNotNull(resConstrainedA);
+
+        // Check consistency between constrained algos
+        assertEquals(cheminConstrainedDijkstra, cheminConstrainedA, "Constrained A* and Dijkstra should match");
     }
 
 }
