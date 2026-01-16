@@ -1,10 +1,17 @@
 package fr.insa.projetIntegrateur.RoutingService.algorithms;
 
 import fr.insa.projetIntegrateur.RoutingService.model.*;
+import fr.insa.projetIntegrateur.RoutingService.service.PathService.PathResult; // Import the wrapper
 import java.util.*;
 
 public class ConstrainedDijkstra {
     private static final double TOL = 0.05;
+
+    // "Global" variables for the algorithm instance
+    private boolean constraintsRelaxed = false;
+    private double curSec;
+    private double curConf;
+    private double curDiff;
 
     private static class NodeDist implements Comparable<NodeDist> {
         final long nodeId;
@@ -21,26 +28,32 @@ public class ConstrainedDijkstra {
         }
     }
 
-    public List<Noeud> shortestPath(Graph g,
-                                    long startId,
-                                    long endId,
-                                    int type,
-                                    double minSecurity,
-                                    double minComfort,
-                                    double minDifficulty) {
+    public PathResult shortestPath(Graph g,
+                                   long startId,
+                                   long endId,
+                                   int type,
+                                   double minSecurity,
+                                   double minComfort,
+                                   double minDifficulty) {
 
-        if (g == null) return Collections.emptyList();
+        // Initialize global tracking variables
+        this.constraintsRelaxed = false;
+        this.curSec = minSecurity;
+        this.curConf = minComfort;
+        this.curDiff = minDifficulty;
+
+        if (g == null) return new PathResult(Collections.emptyList(), false);
         Noeud start = g.getNoeud(startId);
         Noeud goal = g.getNoeud(endId);
-        if (start == null || goal == null) return Collections.emptyList();
-        if (startId == endId) return Collections.singletonList(start);
+        if (start == null || goal == null) return new PathResult(Collections.emptyList(), false);
+        if (startId == endId) return new PathResult(Collections.singletonList(start), false);
 
         Map<Long, Double> dist = new HashMap<>();
         Map<Long, Arc> prevArc = new HashMap<>();
         Set<Long> visited = new HashSet<>();
         PriorityQueue<NodeDist> pq = new PriorityQueue<>();
 
-        // init (keep your style)
+        // init
         for (Noeud n : g.getNoeuds()) {
             dist.put(n.getId(), Double.POSITIVE_INFINITY);
         }
@@ -59,6 +72,45 @@ public class ConstrainedDijkstra {
             List<Arc> adj = g.getAdjacents(u);
             if (adj == null || adj.isEmpty()) continue;
 
+            // --- RELAXATION LOGIC START ---
+            // Check if ANY arc is valid with current constraints.
+            // If not, relax constraints and loop until at least one is valid or we hit 0.
+            while (true) {
+                boolean hasValidArc = false;
+                for (Arc arc : adj) {
+                    if (arc == null) continue;
+                    int roadType = arc.getType_route();
+                    if (roadType != type && roadType != 2) continue;
+                    
+                    // Check validity using the "Global" current variables
+                    if (isArcValid(arc, type, this.curSec, this.curConf, this.curDiff)) {
+                        hasValidArc = true;
+                        break;
+                    }
+                }
+
+                if (hasValidArc) {
+                    break; // Found at least one valid way out, proceed
+                }
+
+                // If we are here, NO arc is valid. Check if we can relax.
+                // Stop if all are already 0 (cannot relax further)
+                if (this.curSec <= 0 && this.curConf <= 0 && this.curDiff <= 0) {
+                    break; 
+                }
+
+                // Edit the "Global" vector: reduce non-zero components by 0.05
+                if (this.curSec > 0) this.curSec = Math.max(0.0, this.curSec - 0.05);
+                if (this.curConf > 0) this.curConf = Math.max(0.0, this.curConf - 0.05);
+                if (this.curDiff > 0) this.curDiff = Math.max(0.0, this.curDiff - 0.05);
+
+                // Set global boolean to true
+                this.constraintsRelaxed = true;
+                
+                // Loop continues to check validity with new 'criteria'
+            }
+            // --- RELAXATION LOGIC END ---
+
             double du = dist.getOrDefault(u, Double.POSITIVE_INFINITY);
 
             for (Arc arc : adj) {
@@ -67,7 +119,8 @@ public class ConstrainedDijkstra {
                 int roadType = arc.getType_route();
                 if (roadType != type && roadType != 2) continue;
 
-                if (!isArcValid(arc, type, minSecurity, minComfort, minDifficulty)) continue;
+                // Use the updated Global constraints
+                if (!isArcValid(arc, type, this.curSec, this.curConf, this.curDiff)) continue;
 
                 Noeud dest = arc.getDestination();
                 if (dest == null) continue;
@@ -87,10 +140,13 @@ public class ConstrainedDijkstra {
             }
         }
 
-        // If unreachable, return empty (instead of attempting reconstruction)
-        if (!prevArc.containsKey(endId)) return Collections.emptyList();
-
-        return reconstructPath(g, prevArc, startId, endId);
+        List<Noeud> path = Collections.emptyList();
+        if (prevArc.containsKey(endId)) {
+            path = reconstructPath(g, prevArc, startId, endId);
+        }
+        
+        // Return path AND the global boolean value
+        return new PathResult(path, this.constraintsRelaxed);
     }
 
     private boolean isArcValid(Arc arc,
