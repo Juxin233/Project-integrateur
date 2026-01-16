@@ -1,7 +1,7 @@
 package fr.insa.projetIntegrateur.RoutingService.algorithms;
 
 import fr.insa.projetIntegrateur.RoutingService.model.*;
-import fr.insa.projetIntegrateur.RoutingService.service.PathService.PathResult; // Import the wrapper
+import fr.insa.projetIntegrateur.RoutingService.service.PathService.PathResult;
 import java.util.*;
 
 public class ConstrainedDijkstra {
@@ -73,7 +73,7 @@ public class ConstrainedDijkstra {
             if (adj == null || adj.isEmpty()) continue;
 
             // --- RELAXATION LOGIC START ---
-            // Check if ANY arc is valid with current constraints.
+            // Check if ANY arc is valid with current constraints to an UNVISITED node.
             // If not, relax constraints and loop until at least one is valid or we hit 0.
             while (true) {
                 boolean hasValidArc = false;
@@ -82,6 +82,12 @@ public class ConstrainedDijkstra {
                     int roadType = arc.getType_route();
                     if (roadType != type && roadType != 2) continue;
                     
+                    // CRITICAL FIX: Ignore arcs pointing to already visited nodes
+                    // Otherwise, we never relax because the back-edge is usually valid.
+                    if (arc.getDestination() != null && visited.contains(arc.getDestination().getId())) {
+                        continue;
+                    }
+
                     // Check validity using the "Global" current variables
                     if (isArcValid(arc, type, this.curSec, this.curConf, this.curDiff)) {
                         hasValidArc = true;
@@ -93,7 +99,7 @@ public class ConstrainedDijkstra {
                     break; // Found at least one valid way out, proceed
                 }
 
-                // If we are here, NO arc is valid. Check if we can relax.
+                // If we are here, NO arc is valid to unvisited nodes. Check if we can relax.
                 // Stop if all are already 0 (cannot relax further)
                 if (this.curSec <= 0 && this.curConf <= 0 && this.curDiff <= 0) {
                     break; 

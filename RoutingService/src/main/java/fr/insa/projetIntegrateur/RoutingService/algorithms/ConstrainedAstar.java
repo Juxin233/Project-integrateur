@@ -1,7 +1,7 @@
 package fr.insa.projetIntegrateur.RoutingService.algorithms;
 
 import fr.insa.projetIntegrateur.RoutingService.model.*;
-import fr.insa.projetIntegrateur.RoutingService.service.PathService.PathResult; // Import wrapper
+import fr.insa.projetIntegrateur.RoutingService.service.PathService.PathResult;
 import fr.insa.projetIntegrateur.RoutingService.utils.Haversine;
 
 import java.util.*;
@@ -56,6 +56,9 @@ public class ConstrainedAstar {
         gScore.put(startId, 0.0);
 
         Map<Long, Arc> cameFrom = new HashMap<>();
+        
+        // Track closed nodes for relaxation logic
+        Set<Long> closedSet = new HashSet<>();
 
         PriorityQueue<QEntry> openSet = new PriorityQueue<>(Comparator.comparingDouble(e -> e.f));
         openSet.add(new QEntry(startId, 0.0, heuristic(start, goal)));
@@ -67,6 +70,9 @@ public class ConstrainedAstar {
             if (cur.g != bestKnownG) {
                 continue;
             }
+            
+            // Mark node as closed/visited
+            closedSet.add(cur.nodeId);
 
             if (cur.nodeId == goalId) {
                 List<Noeud> path = reconstructPath(graphe, cameFrom, startId, goalId);
@@ -85,6 +91,12 @@ public class ConstrainedAstar {
                     if (arc == null) continue;
                     int T = arc.getType_route();
                     if (T != type && T != 2) continue;
+                    
+                    // CRITICAL FIX: Ignore arcs pointing to closed/visited nodes
+                    if (arc.getDestination() != null && closedSet.contains(arc.getDestination().getId())) {
+                        continue;
+                    }
+                    
                     // Check using global current vector
                     if (isArcValid(arc, type, this.curSec, this.curConf, this.curDiff)) {
                         hasValidArc = true;
