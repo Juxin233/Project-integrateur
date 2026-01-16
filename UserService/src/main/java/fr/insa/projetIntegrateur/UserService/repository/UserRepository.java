@@ -49,7 +49,7 @@ public class UserRepository {
                 e.setIdUser(rs.getInt("idUser"));
                 e.setFirstName(rs.getString("firstName"));
                 e.setLastName(rs.getString("lastName"));
-                e.setPassword(rs.getString("password"));
+                //e.setPassword(rs.getString("password"));
                 e.setEmail(rs.getString("email"));
 
                 //fixed profile
@@ -72,7 +72,7 @@ public class UserRepository {
                     e.setIdUser(rs.getInt("idUser"));
                     e.setFirstName(rs.getString("firstName"));
                     e.setLastName(rs.getString("lastName"));
-                    e.setPassword(rs.getString("password"));
+                    //e.setPassword(rs.getString("password"));
                     e.setEmail(rs.getString("email"));
 
                     //fixed profile
@@ -95,7 +95,7 @@ public class UserRepository {
                     e.setIdUser(rs.getInt("idUser"));
                     e.setFirstName(rs.getString("firstName"));
                     e.setLastName(rs.getString("lastName"));
-                    e.setPassword(rs.getString("password"));
+                    //e.setPassword(rs.getString("password"));
                     e.setEmail(rs.getString("email"));
                     
                     //fixed profile
@@ -118,7 +118,7 @@ public class UserRepository {
                     e.setIdUser(rs.getInt("idUser"));
                     e.setFirstName(rs.getString("firstName"));
                     e.setLastName(rs.getString("lastName"));
-                    e.setPassword(rs.getString("password"));
+                    //e.setPassword(rs.getString("password"));
                     e.setEmail(rs.getString("email"));
                     
                     //fixed profile
@@ -141,7 +141,7 @@ public class UserRepository {
                     e.setIdUser(rs.getInt("idUser"));
                     e.setFirstName(rs.getString("firstName"));
                     e.setLastName(rs.getString("lastName"));
-                    e.setPassword(rs.getString("password"));
+                    //e.setPassword(rs.getString("password"));
                     e.setEmail(rs.getString("email"));
                     
                     //fixed profile
@@ -266,7 +266,7 @@ public class UserRepository {
                         e.setIdUser(rs.getInt("idUser"));
                         e.setFirstName(rs.getString("firstName"));
                         e.setLastName(rs.getString("lastName"));
-                        e.setPassword(rs.getString("password"));
+                        //e.setPassword(rs.getString("password"));
                         e.setEmail(rs.getString("email"));
                         
                         //fixed profile
@@ -286,34 +286,34 @@ public class UserRepository {
 	    
 	//-------------------------------- PUT METHODS --------------------------------//
 	    
-    public void replaceFirstName(int idUser, String firstName) {
+    public int replaceFirstName(int idUser, String firstName) {
     	String sql = "UPDATE User SET firstName = ? WHERE idUser = ?";
-        jdbcTemplate.update(sql, firstName, idUser);
+        return jdbcTemplate.update(sql, firstName, idUser);
+    }
+
+    public int replaceLastName(int idUser, String lastName) {
+        String sql = "UPDATE User SET lastName = ? WHERE idUser = ?";
+        return jdbcTemplate.update(sql, lastName, idUser);
     }
     
-    public void replaceLastName(int idUser, String lastName) {
-    	String sql = "UPDATE User SET lastName = ? WHERE idUser = ?";
-        jdbcTemplate.update(sql, lastName, idUser);
+    public int replacePassword(int idUser, String password) {
+        String sql = "UPDATE User SET password = ? WHERE idUser = ?";
+        return jdbcTemplate.update(sql, password, idUser);
     }
     
-    public void replacePassword(int idUser, String password) {
-    	String sql = "UPDATE User SET password = ? WHERE idUser = ?";
-        jdbcTemplate.update(sql, password, idUser);
+    public int replaceEmail(int idUser, String email) {
+        String sql = "UPDATE User SET email = ? WHERE idUser = ?";
+        return jdbcTemplate.update(sql, email, idUser);
     }
     
-    public void replaceEmail(int idUser, String email) {
-    	String sql = "UPDATE User SET email = ? WHERE idUser = ?";
-        jdbcTemplate.update(sql, email, idUser);
+    public int replaceProfileDefault(int idUser, int idProfileDefault) {
+        String sql = "UPDATE User SET idProfileDefault = ? WHERE idUser = ?";
+        return jdbcTemplate.update(sql, idProfileDefault, idUser);
     }
     
-    public void replaceProfileDefault(int idUser, int idProfileDefault) {
-    	String sql = "UPDATE User SET idProfileDefault = ? WHERE idUser = ?";
-        jdbcTemplate.update(sql, idProfileDefault, idUser);
-    }
-    
-    public void replaceCustomProfile(int idUser, String customProfile) {
-    	String sql = "UPDATE User SET customProfile = ? WHERE idUser = ?";
-        jdbcTemplate.update(sql, customProfile, idUser);
+    public int replaceCustomProfile(int idUser, String customProfile) {
+        String sql = "UPDATE User SET customProfile = ? WHERE idUser = ?";
+        return jdbcTemplate.update(sql, customProfile, idUser);
     }
 	    
 	//-------------------------------- DELETE METHODS --------------------------------//
