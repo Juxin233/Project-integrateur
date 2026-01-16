@@ -16,7 +16,7 @@ import java.util.*;
  */
 public class ConstrainedAstar {
 
-    /** Small tolerance used in your project logic. */
+
     private static final double TOL = 0.05;
 
     // Global variables (instance level)
@@ -51,7 +51,13 @@ public class ConstrainedAstar {
                                     double minComfort,
                                     double minDifficulty) {
 
-        if (graphe == null) return new Reponse(Collections.emptyList(),0,0,0,type,false);
+        // Init globals
+        this.constraintsRelaxed = false;
+        this.curSec = minSecurity;
+        this.curConf = minComfort;
+        this.curDiff = minDifficulty;
+
+        if (graphe == null) return new new Reponse(Collections.emptyList(),0,0,0,type,false);
 
         Noeud start = graphe.getNoeud(startId);
         Noeud goal = graphe.getNoeud(goalId);
@@ -68,6 +74,9 @@ public class ConstrainedAstar {
         // cameFrom: for each nodeId, store the arc used to reach it with best gScore
         Map<Long, Arc> cameFrom = new HashMap<>();
 
+        // Track closed nodes for relaxation logic
+        Set<Long> closedSet = new HashSet<>();
+
         // Open set: ordered by smallest f
         PriorityQueue<QEntry> openSet = new PriorityQueue<>(Comparator.comparingDouble(e -> e.f));
         openSet.add(new QEntry(startId, 0.0, heuristic(start, goal)));
@@ -80,6 +89,9 @@ public class ConstrainedAstar {
             if (cur.g != bestKnownG) {
                 continue;
             }
+
+            // Mark node as closed/visited
+            closedSet.add(cur.nodeId);
 
             if (cur.nodeId == goalId) {
                 return reconstructPath(graphe, cameFrom, startId, goalId,type,constraintsRelaxed);
@@ -97,6 +109,12 @@ public class ConstrainedAstar {
                     if (arc == null) continue;
                     int T = arc.getType_route();
                     if (T != type && T != 2) continue;
+
+                    // CRITICAL FIX: Ignore arcs pointing to closed/visited nodes
+                    if (arc.getDestination() != null && closedSet.contains(arc.getDestination().getId())) {
+                        continue;
+                    }
+
                     // Check using global current vector
                     if (isArcValid(arc, type, this.curSec, this.curConf, this.curDiff)) {
                         hasValidArc = true;
@@ -122,7 +140,7 @@ public class ConstrainedAstar {
                 if (arc == null) continue;
                 int T = arc.getType_route();
                 if (T != type && T != 2) continue;
-
+                
                 // Use global current vector
                 if (!isArcValid(arc, type, this.curSec, this.curConf, this.curDiff)) {
                     continue;
@@ -173,9 +191,9 @@ public class ConstrainedAstar {
         double thresSec = clamp01(minSecurity - TOL);
         double thresConf = clamp01(minComfort - TOL);
         double thresDiff = clamp01(minDifficulty - TOL);
-        double arcSec =0.0;
-        double arcConf =0.0;
-        double arcDiff =0.0;
+        double arcSec = 0.0;
+        double arcConf = 0.0;
+        double arcDiff = 0.0;
         
         switch (type) {
 	        case 0:
@@ -193,7 +211,7 @@ public class ConstrainedAstar {
                 arcConf = arc.getConfortPieton();
                 arcDiff = arc.getDiffPieton();
         }
-        	
+
         if (!isFinite01(arcSec) || !isFinite01(arcConf) || !isFinite01(arcDiff)) {
             return false;
         }
