@@ -5,70 +5,64 @@ import java.util.Map;
 import java.util.Objects;
 
 public class Arc {
-	 private final Noeud origine;
+	 	private final Noeud origine;
 	    private final Noeud destination;
 	    private final double longueur;
 	    private final String typeVoie; // nullable
-
-	    //EN COMMUN
-	    private int eclairage = 0;
-	    private int chantier = 0;
-	    private double risqueMeteo = 0.0;
-
-
+	    private final long id;
+	    private int Type_route = 2; // 0 Pieton, 1 Velo, 2 Pieton & Velo
 	    //EQUIPE PIETON
 	    //truc a verifier
 	    private double tempsMarche = 0.0;
 	    private double risquePieton = 0.0;
-	    
+	    private double diffPieton=0.0;
 	 
 	    private int zonePietonne = 0;
 	    private int zoneEmpruntable = 1;
 	    private double confortPieton = 0.0;
 
-	    private int accesAveugle = 0;
-	    private int accesFRoulante = 0;
-
-
 	    //EQUIPE VELO
 	    private double tempsVelo = 0;
-	    private int Type_route = 0;
 	    private double risqueVelo = 0.0;
 	    private double confortVelo = 0.0;
+	    private double diffVelo =0.0;
+	    
 
-	    private final Map<String, Object> extra = new LinkedHashMap<>();
+		private final Map<String, Object> extra = new LinkedHashMap<>();
 
-	    public Arc(Noeud origine, Noeud destination, double longueur, String typeVoie) {
+	    public Arc(Noeud origine, Noeud destination, double longueur, String typeVoie,long id) {
 	        this.origine = Objects.requireNonNull(origine, "origine");
 	        this.destination = Objects.requireNonNull(destination, "destination");
 	        this.longueur = longueur;
 	        this.typeVoie = typeVoie; // peut être null
+	        this.id = id;    
+		}
+	    
+	    public Arc(Noeud origine, Noeud destination, double longueur, String typeVoie,long id,
+	    		double risquePieton,double risqueVelo,double confortPieton,double confortVelo,double diffVelo,double diffPieton ) {
+	        this.origine = Objects.requireNonNull(origine, "origine");
+	        this.destination = Objects.requireNonNull(destination, "destination");
+	        this.longueur = longueur;
+	        this.typeVoie = typeVoie; // peut être null
+	        this.risqueVelo = risqueVelo;
+	        this.risquePieton = risquePieton;
+	        this.confortVelo = confortVelo;
+	        this.confortPieton = confortPieton;
+	        this.diffVelo = diffVelo;
+	        this.diffPieton = diffPieton;
+	        this.id = id; 
 	    }
-
+	    
 	    public Noeud getOrigine() { return origine; }
 	    public Noeud getDestination() { return destination; }
 	    public double getLongueur() { return longueur; }
 	    public String getTypeVoie() { return typeVoie; }
-	    public int getAccesAveugle() { return accesAveugle; }
-	    public void setAccesAveugle(int accesAveugle) { this.accesAveugle = accesAveugle; }
-	    public int getAccesFRoulante() { return accesFRoulante; }
-	    public void setAccesFRoulante(int accesFRoulante) { this.accesFRoulante = accesFRoulante; } 
-	    
 
 	    public double getTempsMarche() { return tempsMarche; }
 	    public void setTempsMarche(double tempsMarche) { this.tempsMarche = tempsMarche; }
 
 	    public double getRisquePieton() { return risquePieton; }
 	    public void setRisquePieton(double risquePieton) { this.risquePieton = risquePieton; }
-
-	    public double getRisqueMeteo() { return risqueMeteo; }
-	    public void setRisqueMeteo(double risqueMeteo) { this.risqueMeteo = risqueMeteo; }
-
-	    public int getEclairage() { return eclairage; }
-	    public void setEclairage(int eclairage) { this.eclairage = eclairage; }
-
-	    public int getChantier() { return chantier; }
-	    public void setChantier(int chantier) { this.chantier = chantier; }
 
 	    public int getZonePietonne() { return zonePietonne; }
 	    public void setZonePietonne(int zonePietonne) { this.zonePietonne = zonePietonne; }
@@ -92,7 +86,14 @@ public class Arc {
 
 	    public double getConfortVelo() { return confortVelo; }
 	    public void setConfortVelo(double confortVelo) { this.confortVelo = confortVelo; }
+	    public double getDiffPieton() {return diffPieton;}
 
+		public void setDiffPieton(double diffPieton) {this.diffPieton = diffPieton;}
+
+		public double getDiffVelo() {return diffVelo;}
+
+		public void setDiffVelo(double diffVelo) {this.diffVelo = diffVelo;}
+		
 	    public Map<String, Object> getExtra() { return extra; }
 
 	    public Map<String, Object> toMap() {
@@ -104,9 +105,6 @@ public class Arc {
 
 	        d.put("temps_marche", tempsMarche);
 	        d.put("risque_pieton", risquePieton);
-	        d.put("risque_meteo", risqueMeteo);
-	        d.put("eclairage", eclairage);
-	        d.put("chantier", chantier);
 	        d.put("zone_pietonne", zonePietonne);
 	        d.put("zone_empruntable", zoneEmpruntable);
 	        d.put("confort_pieton", confortPieton);
@@ -114,8 +112,13 @@ public class Arc {
 	        d.put("acces_velo", Type_route);
 	        d.put("risque_velo", risqueVelo);
 	        d.put("confort_velo", confortVelo);
-
+	        d.put("diff_velo", diffVelo);
+	        d.put("diff_pieton", diffPieton);
 	        if (!extra.isEmpty()) d.putAll(extra);
 	        return d;
 	    }
+
+		public long getId() {
+			return id;
+		}
 }

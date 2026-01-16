@@ -26,7 +26,7 @@ public class Dijkstra {
      * @param endId ID du noeud d'arrivée
      * @return liste des arcs formant le chemin le plus court, ou vide si pas de chemin
      */
-    public List<Arc> shortestPath(Graph g, long startId, long endId) {
+    public List<Noeud> shortestPath(Graph g, long startId, long endId, int type) {
         // Map : noeud -> distance depuis start
         Map<Long, Double> dist = new HashMap<>();
         // Map : noeud -> arc précédent pour reconstruire le chemin
@@ -37,15 +37,16 @@ public class Dijkstra {
         Noeud endNode = g.getNoeud(endId);
         if (startNode == null || endNode == null) {
             System.out.println("Start or end node does not exist in the graph!");
+            return Collections.emptyList();
         }
 
         if (g.getAdjacents(startId).isEmpty()) {
             System.out.println("Start node has no outgoing arcs!");
         }
+        
         if (g.getAdjacents(endId).isEmpty()) {
             System.out.println("End node has no outgoing arcs!");
         }
-
         
         // Initialisation
         for (Noeud n : g.getNoeuds()) {
@@ -71,8 +72,13 @@ public class Dijkstra {
             visited.add(u);
 
             if (u == endId) break; // arrivé au noeud final
-
-            for (Arc arc : g.getAdjacents(u)) {
+            
+            List<Arc> arcs = g.getAdjacents(u);
+//            System.out.println(arcs.size());
+            if(arcs == null) continue;
+            for (Arc arc : arcs) {
+            	int T =arc.getType_route();
+            	if (T != type && T !=2 ) continue; 
                 long v = arc.getDestination().getId();
                 double alt = dist.get(u) + arc.getLongueur();
 
@@ -85,16 +91,17 @@ public class Dijkstra {
         }
 
         // Reconstruire le chemin depuis endId
-        LinkedList<Arc> path = new LinkedList<>();
+        LinkedList<Noeud> path = new LinkedList<>();
         Long cur = endId;
         while (prevArc.containsKey(cur)) {
             Arc arc = prevArc.get(cur);
-            path.addFirst(arc);
+            path.addFirst(arc.getDestination());
             cur = arc.getOrigine().getId();
         }
-
-        if (path.isEmpty() && startId != endId) {
+        path.addFirst(startNode);
+        if (!prevArc.containsKey(endId) && startId != endId) {
             System.out.println("No path found between start and end!");
+            return Collections.emptyList();
         }
 
         return path;

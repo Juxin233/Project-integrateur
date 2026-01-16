@@ -6,90 +6,149 @@ import fr.insa.projetIntegrateur.RoutingService.model.Arc;
 import fr.insa.projetIntegrateur.RoutingService.model.Graph;
 import fr.insa.projetIntegrateur.RoutingService.model.Noeud;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.Random;
 
 public class GeoJsonLoader {
 
     private final ObjectMapper mapper = new ObjectMapper();
-    private final AtomicLong generatedNodeId = new AtomicLong(1);
+    // arc unique ID
+    private final AtomicLong arcIdGen = new AtomicLong(1);
 
-    /**
-     * Charge un GeoJSON en créant un graphe avec arcs bidirectionnels.
-     * @param resource Chemin du fichier dans src/main/resources
-     * @return Graphe prêt pour Dijkstra / A*
-     * @throws Exception
-     */
+    private final Random random = new Random();
+
+    private double randIndicator() {
+        return 0.5 + random.nextDouble() * 0.5;
+    }
+
+    private Noeud getOrCreateOsmNode(Graph g,
+                                    Map<Long, Noeud> osmCache,
+                                    long osmId,
+                                    double lat,
+                                    double lon) {
+        Noeud existing = osmCache.get(osmId);
+        if (existing != null) return existing;
+        Noeud nn = new Noeud(osmId, lat, lon);
+        g.ajouterNoeud(nn);
+        osmCache.put(osmId, nn);
+        return nn;
+    }
+
     public Graph charger(String resource) throws Exception {
-        InputStream is = getClass().getClassLoader().getResourceAsStream(resource);
-        if (is == null) {
-            throw new RuntimeException("Fichier GeoJSON introuvable : " + resource);
-        }
+        try (InputStream is = getClass().getClassLoader().getResourceAsStream(resource)) {
+            if (is == null) throw new RuntimeException("Fichier GeoJSON introuvable : " + resource);
 
-        JsonNode root = mapper.readTree(is);
-        Graph graphe = new Graph();
-        Map<String, Noeud> pointCache = new HashMap<>();
+            JsonNode root = mapper.readTree(is);
+            JsonNode features = root.get("features");
+            if (features == null || !features.isArray()) {
+                throw new RuntimeException("GeoJSON invalide : 'features' manquant ou non tableau.");
+            }
 
-        // 1️⃣ Première passe : créer tous les Noeuds de type Point
-        for (JsonNode feature : root.get("features")) {
-            String geomType = feature.get("geometry").get("type").asText();
-            if ("Point".equals(geomType)) {
-                JsonNode coords = feature.get("geometry").get("coordinates");
+            Graph g = new Graph();
+
+            // 1) OSM node id -> Noeud
+            Map<Long, Noeud> osmCache = new HashMap<>();
+
+            // -------- Pass 1: load Point features (real OSM node) --------
+            for (JsonNode feature : features) {
+                JsonNode geom = feature.get("geometry");
                 JsonNode props = feature.get("properties");
-                long id = props.get("osm_id").asLong();
+                if (geom == null || props == null) continue;
+
+                if (!"Point".equals(geom.path("type").asText(""))) continue;
+                if (!props.has("osm_id")) continue;
+
+                JsonNode coords = geom.get("coordinates");
+                if (coords == null || coords.size() < 2) continue;
+
+                long osmId = props.get("osm_id").asLong();
                 double lon = coords.get(0).asDouble();
                 double lat = coords.get(1).asDouble();
-                Noeud n = new Noeud(id, lat, lon);
-                graphe.ajouterNoeud(n);
-                pointCache.put(lat + "," + lon, n);
+
+                Noeud n = new Noeud(osmId, lat, lon);
+                g.ajouterNoeud(n);
+                osmCache.put(osmId, n);
             }
-        }
 
-        // 2️⃣ Deuxième passe : traiter LineString et créer arcs bidirectionnels
-        for (JsonNode feature : root.get("features")) {
-            String geomType = feature.get("geometry").get("type").asText();
-            if (!"LineString".equals(geomType)) continue;
 
-            JsonNode coords = feature.get("geometry").get("coordinates");
-            JsonNode props = feature.get("properties");
-            if (coords.size() < 2) continue;
+            // -------- Pass 2: load LineString features  --------
+            for (JsonNode feature : features) {
+                JsonNode geom = feature.get("geometry");
+                JsonNode props = feature.get("properties");
+                if (geom == null || props == null) continue;
 
-            for (int i = 0; i < coords.size() - 1; i++) {
-                double lon1 = coords.get(i).get(0).asDouble();
-                double lat1 = coords.get(i).get(1).asDouble();
-                double lon2 = coords.get(i + 1).get(0).asDouble();
-                double lat2 = coords.get(i + 1).get(1).asDouble();
+                if (!"LineString".equals(geom.path("type").asText(""))) continue;
 
-                // récupérer ou créer les noeuds
-                Noeud n1 = pointCache.computeIfAbsent(lat1 + "," + lon1, k -> {
-                    long newId = generatedNodeId.getAndIncrement();
-                    Noeud nn = new Noeud(newId, lat1, lon1);
-                    graphe.ajouterNoeud(nn);
-                    return nn;
-                });
-                Noeud n2 = pointCache.computeIfAbsent(lat2 + "," + lon2, k -> {
-                    long newId = generatedNodeId.getAndIncrement();
-                    Noeud nn = new Noeud(newId, lat2, lon2);
-                    graphe.ajouterNoeud(nn);
-                    return nn;
-                });
+                JsonNode coords = geom.get("coordinates");
+                if (coords == null || coords.size() < 2) continue;
 
-                // distance
-                double dist = Haversine.distance(n1.getLat(), n1.getLon(), n2.getLat(), n2.getLon());
+                if (!props.has("from_node") || !props.has("to_node")) continue;
+
+                long fromOsm = props.get("from_node").asLong();
+                long toOsm = props.get("to_node").asLong();
+                long arcId = props.get("osm_way_id").asLong();
                 String typeVoie = props.has("highway") ? props.get("highway").asText() : null;
+                String onewayVal = props.has("oneway") ? props.get("oneway").asText() : "no";
 
-                // arcs bidirectionnels
-                graphe.ajouterArc(new Arc(n1, n2, dist, typeVoie));
-                graphe.ajouterArc(new Arc(n2, n1, dist, typeVoie));
+                int n = coords.size();
+                double dist=0.0;
+                for (int i =0;i < n-1;i++) {
+                	double lonCurrent = coords.get(i).get(0).asDouble();
+                    double latCurrent = coords.get(i).get(1).asDouble();
+                    double lonNext = coords.get(i+1).get(0).asDouble();
+                    double latNext = coords.get(i+1).get(1).asDouble();
+                    dist += Haversine.distance(latCurrent, lonCurrent, latNext, lonNext);
+                }
+                double lonFirst = coords.get(0).get(0).asDouble();
+                double latFirst = coords.get(0).get(1).asDouble();
+                double lonLast = coords.get(n - 1).get(0).asDouble();
+                double latLast = coords.get(n - 1).get(1).asDouble();
+
+                Noeud fromNode = getOrCreateOsmNode(g, osmCache,  fromOsm, latFirst, lonFirst);
+                Noeud toNode = getOrCreateOsmNode(g, osmCache, toOsm, latLast, lonLast);
+
+                // basuler  from/to nodes；ustiliser d'abord OSM id, sinon synthetic id
+                Noeud a = fromNode;
+                Noeud b = toNode;
+
+                double risquePieton = randIndicator();
+                double risqueVelo = randIndicator();
+                double confortPieton = randIndicator();
+                double confortVelo = randIndicator();
+                double diffVelo = randIndicator();
+                double diffPieton = randIndicator();
+
+                switch (onewayVal) {
+                    case "yes" -> g.ajouterArc(new Arc(a, b, dist, typeVoie, arcId,
+                            risquePieton, risqueVelo, confortPieton, confortVelo, diffVelo, diffPieton));
+                    case "no" -> {
+                        g.ajouterArc(new Arc(a, b, dist, typeVoie, arcId,
+                                risquePieton, risqueVelo, confortPieton, confortVelo, diffVelo, diffPieton));
+                        g.ajouterArc(new Arc(b, a, dist, typeVoie, arcId,
+                                risquePieton, risqueVelo, confortPieton, confortVelo, diffVelo, diffPieton));
+                    }
+                    case "-1" -> g.ajouterArc(new Arc(b, a, dist, typeVoie, arcId,
+                            risquePieton, risqueVelo, confortPieton, confortVelo, diffVelo, diffPieton));
+                    default -> {
+                        g.ajouterArc(new Arc(a, b, dist, typeVoie, arcId,
+                                risquePieton, risqueVelo, confortPieton, confortVelo, diffVelo, diffPieton));
+                        g.ajouterArc(new Arc(b, a, dist, typeVoie, arcId,
+                                risquePieton, risqueVelo, confortPieton, confortVelo, diffVelo, diffPieton));
+                    }
+                }
             }
+            
+            System.out.println("Graphe chargé : " + g.getNombreNoeuds() + " noeuds, " + g.getNombreArcs() + " arcs.");
+            return g;
         }
-
-        System.out.println("Graphe chargé : " + graphe.getNoeuds().size() + " noeuds, " 
-                           + graphe.getNombreArcs() + " arcs.");
-        return graphe;
     }
 }
+
+
+
+
+
+
