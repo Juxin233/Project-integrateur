@@ -21,7 +21,7 @@ public class ConstrainedDijkstra {
         }
     }
 
-    public List<Noeud> shortestPath(Graph g,
+    public Reponse shortestPath(Graph g,
                                     long startId,
                                     long endId,
                                     int type,
@@ -29,11 +29,11 @@ public class ConstrainedDijkstra {
                                     double minComfort,
                                     double minDifficulty) {
 
-        if (g == null) return Collections.emptyList();
+        if (g == null) return new Reponse(Collections.emptyList(),0,0,0,type,false);
         Noeud start = g.getNoeud(startId);
         Noeud goal = g.getNoeud(endId);
-        if (start == null || goal == null) return Collections.emptyList();
-        if (startId == endId) return Collections.singletonList(start);
+        if (start == null || goal == null) return new Reponse(Collections.emptyList(),0,0,0,type,false);
+        if (startId == endId) return new Reponse(Collections.emptyList(),0,0,0,type,false);
 
         Map<Long, Double> dist = new HashMap<>();
         Map<Long, Arc> prevArc = new HashMap<>();
@@ -88,9 +88,9 @@ public class ConstrainedDijkstra {
         }
 
         // If unreachable, return empty (instead of attempting reconstruction)
-        if (!prevArc.containsKey(endId)) return Collections.emptyList();
+        if (!prevArc.containsKey(endId)) return new Reponse(Collections.emptyList(),0,0,0,type,false);
 
-        return reconstructPath(g, prevArc, startId, endId);
+        return reconstructPath(g, prevArc, startId, endId,type);
     }
 
     private boolean isArcValid(Arc arc,
@@ -143,26 +143,50 @@ public class ConstrainedDijkstra {
         return x;
     }
 
-    private List<Noeud> reconstructPath(Graph graphe, Map<Long, Arc> cameFrom, long startId, long goalId) {
+    private Reponse reconstructPath(Graph graphe, Map<Long, Arc> cameFrom, long startId, long goalId,int type) {
         LinkedList<Noeud> path = new LinkedList<>();
 
         long currentId = goalId;
         Noeud current = graphe.getNoeud(currentId);
-        if (current == null) return Collections.emptyList();
+        if (current == null) return new Reponse(Collections.emptyList(),0,0,0,type,false);
 
         path.addFirst(current);
-
+        double confort=0.0;
+        double diff=0.0;
+        double risque=0.0;
+        double counter=0;
         while (currentId != startId) {
             Arc arc = cameFrom.get(currentId);
-            if (arc == null) return Collections.emptyList();
+            if (arc == null) return new Reponse(Collections.emptyList(),0,0,0,type,false);
 
             Noeud prev = arc.getOrigine();
-            if (prev == null) return Collections.emptyList();
+            if (prev == null) return new Reponse(Collections.emptyList(),0,0,0,type,false);
 
             currentId = prev.getId();
             path.addFirst(prev);
+            switch (type) {
+        	case 0:
+        		confort += arc.getConfortPieton();
+        		diff += arc.getDiffPieton();
+        		risque += arc.getRisquePieton();
+        		break;
+        	case 1:
+        		confort += arc.getConfortVelo();
+        		diff += arc.getDiffVelo();
+        		risque += arc.getRisqueVelo();
+        		break;
+        	case 2:
+        		confort += arc.getConfortPieton();
+        		diff += arc.getConfortPieton();
+        		risque += arc.getRisquePieton();
+        		break;
+            }
+            counter ++;
         }
-
-        return path;
+        confort = confort / counter;
+        diff = diff/counter;
+        risque = risque/counter;
+        
+        return new Reponse(path,confort,diff,risque,type,false);
     }
 }

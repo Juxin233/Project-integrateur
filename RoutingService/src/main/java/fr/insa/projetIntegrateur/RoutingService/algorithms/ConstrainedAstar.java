@@ -38,7 +38,7 @@ public class ConstrainedAstar {
      *
      * @return List of nodes from start to goal (inclusive) or empty list if no path.
      */
-    public List<Noeud> shortestPath(Graph graphe,
+    public Reponse shortestPath(Graph graphe,
                                     long startId,
                                     long goalId,
                                     int type,
@@ -46,14 +46,14 @@ public class ConstrainedAstar {
                                     double minComfort,
                                     double minDifficulty) {
 
-        if (graphe == null) return Collections.emptyList();
+        if (graphe == null) return new Reponse(Collections.emptyList(),0,0,0,type,false);
 
         Noeud start = graphe.getNoeud(startId);
         Noeud goal = graphe.getNoeud(goalId);
-        if (start == null || goal == null) return Collections.emptyList();
+        if (start == null || goal == null) return new Reponse(Collections.emptyList(),0,0,0,type,false);
 
         if (startId == goalId) {
-            return Collections.singletonList(start);
+            return new Reponse(Collections.singletonList(start),0,0,0,type,false);
         }
 
         // gScore: best known cost from start to each nodeId
@@ -77,7 +77,7 @@ public class ConstrainedAstar {
             }
 
             if (cur.nodeId == goalId) {
-                return reconstructPath(graphe, cameFrom, startId, goalId);
+                return reconstructPath(graphe, cameFrom, startId, goalId,type);
             }
 
             List<Arc> arcs = graphe.getAdjacents(cur.nodeId);
@@ -120,7 +120,7 @@ public class ConstrainedAstar {
             }
         }
 
-        return Collections.emptyList();
+        return new Reponse(Collections.emptyList(),0,0,0,type,false);
     }
 
     /** Heuristic: great-circle distance (meters-like) between node and goal. */
@@ -187,28 +187,50 @@ public class ConstrainedAstar {
      * Reconstructs node path from startId to goalId using cameFrom map (nodeId -> arc used).
      * Returns empty list if reconstruction fails (should not happen when algorithm is correct).
      */
-    private List<Noeud> reconstructPath(Graph graphe, Map<Long, Arc> cameFrom, long startId, long goalId) {
+    private Reponse reconstructPath(Graph graphe, Map<Long, Arc> cameFrom, long startId, long goalId,int type) {
         LinkedList<Noeud> path = new LinkedList<>();
 
         long currentId = goalId;
         Noeud current = graphe.getNoeud(currentId);
-        if (current == null) return Collections.emptyList();
+        if (current == null) return new Reponse(Collections.emptyList(),0,0,0,type,false);
 
         path.addFirst(current);
-
+        double confort=0.0;
+        double diff=0.0;
+        double risque=0.0;
+        double counter=0;
         while (currentId != startId) {
             Arc arc = cameFrom.get(currentId);
-            if (arc == null) {
-                // No predecessor => cannot reconstruct
-                return Collections.emptyList();
-            }
+            if (arc == null) return new Reponse(Collections.emptyList(),0,0,0,type,false);
+
             Noeud prev = arc.getOrigine();
-            if (prev == null) return Collections.emptyList();
+            if (prev == null) return new Reponse(Collections.emptyList(),0,0,0,type,false);
 
             currentId = prev.getId();
             path.addFirst(prev);
+            switch (type) {
+        	case 0:
+        		confort += arc.getConfortPieton();
+        		diff += arc.getDiffPieton();
+        		risque += arc.getRisquePieton();
+        		break;
+        	case 1:
+        		confort += arc.getConfortVelo();
+        		diff += arc.getDiffVelo();
+        		risque += arc.getRisqueVelo();
+        		break;
+        	case 2:
+        		confort += arc.getConfortPieton();
+        		diff += arc.getConfortPieton();
+        		risque += arc.getRisquePieton();
+        		break;
+            }
+            counter ++;
         }
-
-        return path;
+        confort = confort / counter;
+        diff = diff/counter;
+        risque = risque/counter;
+        
+        return new Reponse(path,confort,diff,risque,type,false);
     }
 }

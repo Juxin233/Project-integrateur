@@ -26,7 +26,7 @@ public class Dijkstra {
      * @param endId ID du noeud d'arrivée
      * @return liste des arcs formant le chemin le plus court, ou vide si pas de chemin
      */
-    public List<Noeud> shortestPath(Graph g, long startId, long endId, int type) {
+    public Reponse shortestPath(Graph g, long startId, long endId, int type) {
         // Map : noeud -> distance depuis start
         Map<Long, Double> dist = new HashMap<>();
         // Map : noeud -> arc précédent pour reconstruire le chemin
@@ -37,7 +37,7 @@ public class Dijkstra {
         Noeud endNode = g.getNoeud(endId);
         if (startNode == null || endNode == null) {
             System.out.println("Start or end node does not exist in the graph!");
-            return Collections.emptyList();
+            return new Reponse(null,0,0,0,type,false);
         }
 
         if (g.getAdjacents(startId).isEmpty()) {
@@ -55,7 +55,7 @@ public class Dijkstra {
 
         if (!dist.containsKey(startId) || !dist.containsKey(endId)) {
             System.out.println("Start or end node does not exist!");
-            return Collections.emptyList();
+            return new Reponse(null,0,0,0,type,false);
         }
 
         dist.put(startId, 0.0);
@@ -93,17 +93,46 @@ public class Dijkstra {
         // Reconstruire le chemin depuis endId
         LinkedList<Noeud> path = new LinkedList<>();
         Long cur = endId;
+        double confort=0.0;
+        double diff=0.0;
+        double risque=0.0;
+        double counter=0;
         while (prevArc.containsKey(cur)) {
-            Arc arc = prevArc.get(cur);
+            Arc arc = prevArc.get(cur); 
             path.addFirst(arc.getDestination());
             cur = arc.getOrigine().getId();
+            System.out.println(arc.getConfortPieton()+" "+ arc.getConfortPieton() +" "+ arc.getRisquePieton());
+            switch (type) {
+            	case 0:
+            		confort += arc.getConfortPieton();
+            		diff += arc.getConfortPieton();
+            		risque += arc.getRisquePieton();
+            		break;
+            	case 1:
+            		confort += arc.getConfortVelo();
+            		diff += arc.getDiffVelo();
+            		risque += arc.getRisqueVelo();
+            		break;
+            	case 2:
+            		confort += arc.getConfortPieton();
+            		diff += arc.getConfortPieton();
+            		risque += arc.getRisquePieton();
+            		break;
+            }
+            counter++;
+            System.out.println(confort +" "+diff +" "+risque);
         }
+        System.out.println(confort +" "+diff +" "+risque);
         path.addFirst(startNode);
+        confort = confort / counter;
+        diff = diff/counter;
+        risque = risque/counter;
+        System.out.println(confort +" "+diff +" "+risque);
         if (!prevArc.containsKey(endId) && startId != endId) {
             System.out.println("No path found between start and end!");
-            return Collections.emptyList();
+            return new Reponse(null,0,0,0,type,false);
         }
 
-        return path;
+        return new Reponse(path,confort,diff,risque,type,false);
     }
 }

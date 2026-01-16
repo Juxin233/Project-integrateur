@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import fr.insa.projetIntegrateur.RoutingService.model.Arc;
 import fr.insa.projetIntegrateur.RoutingService.model.Noeud;
+import fr.insa.projetIntegrateur.RoutingService.model.Reponse;
 
 class PathServiceTest {
 
@@ -17,29 +18,32 @@ class PathServiceTest {
         long startId = 5561695614L;
         long endId = 13334782210L;
 
-        List<Noeud> cheminDijkstra = service.calculerDijkstra(startId, endId,2);
-        List<Noeud> cheminA= service.calculerAstar(startId, endId,2);
-        List<Noeud> cheminConstrainedDijkstra=service.calculerCheminFiltre(startId, endId, 2, 0.55, 0.5, 0.5);
-        List<Noeud> cheminConstrainedA=service.calculerCheminFiltreAstar(startId, endId, 2, 0.55, 0.5, 0.5);
-        System.out.print(cheminDijkstra);
+        Reponse cheminDijkstra = service.calculerDijkstra(startId, endId,2);
+        Reponse cheminA= service.calculerAstar(startId, endId,2);
+        Reponse cheminConstrainedDijkstra=service.calculerCheminFiltre(startId, endId, 2, 0.55, 0.5, 0.5);
+        Reponse cheminConstrainedA=service.calculerCheminFiltreAstar(startId, endId, 2, 0.55, 0.5, 0.5);
+        System.out.print(cheminDijkstra.getList());
+        System.out.println(cheminDijkstra.getConfort()+" "+cheminDijkstra.getDiff()+" "+cheminDijkstra.getRisque());
         System.out.print("\n");
-        System.out.print(cheminA);
+        System.out.print(cheminA.getList());
+        System.out.println(cheminA.getConfort()+" "+cheminA.getDiff()+" "+cheminA.getRisque());
         System.out.print("\n");
-        System.out.print(cheminConstrainedDijkstra);
+        System.out.print(cheminConstrainedDijkstra.getList());
+        System.out.println(cheminConstrainedDijkstra.getConfort()+" "+cheminConstrainedDijkstra.getDiff()+" "+cheminConstrainedDijkstra.getRisque());
         System.out.print("\n");
         System.out.print(cheminConstrainedA);
-        assertFalse(cheminDijkstra.isEmpty(), "Le chemin ne doit pas être vide");
-        assertEquals(startId, cheminDijkstra.get(0).getId());
-        assertEquals(endId, cheminDijkstra.get(cheminDijkstra.size() - 1).getId());
-        assertEquals(startId, cheminA.get(0).getId());
-        assertEquals(endId, cheminA.get(cheminA.size() - 1).getId());
-        assertEquals(cheminDijkstra,cheminA);
-        assertFalse(cheminConstrainedDijkstra.isEmpty(), "Le chemin ne doit pas être vide");
-        assertEquals(startId, cheminConstrainedDijkstra.get(0).getId());
-        assertEquals(endId, cheminConstrainedDijkstra.get(cheminConstrainedDijkstra.size() - 1).getId());
-        assertEquals(startId, cheminConstrainedA.get(0).getId());
-        assertEquals(endId, cheminConstrainedA.get(cheminConstrainedA.size() - 1).getId());
-        assertEquals(cheminDijkstra,cheminConstrainedA);
+        assertFalse(cheminDijkstra.getList().isEmpty(), "Le chemin ne doit pas être vide");
+        assertEquals(startId, cheminDijkstra.getList().get(0).getId());
+        assertEquals(endId, cheminDijkstra.getList().get(cheminDijkstra.getList().size() - 1).getId());
+        assertEquals(startId, cheminA.getList().get(0).getId());
+        assertEquals(endId, cheminA.getList().get(cheminA.getList().size() - 1).getId());
+        assertEquals(cheminDijkstra.getList(),cheminA.getList());
+        assertFalse(cheminConstrainedDijkstra.getList().isEmpty(), "Le chemin ne doit pas être vide");
+        assertEquals(startId, cheminConstrainedDijkstra.getList().get(0).getId());
+        assertEquals(endId, cheminConstrainedDijkstra.getList().get(cheminConstrainedDijkstra.getList().size() - 1).getId());
+        assertEquals(startId, cheminConstrainedA.getList().get(0).getId());
+        assertEquals(endId, cheminConstrainedA.getList().get(cheminConstrainedA.getList().size() - 1).getId());
+        assertEquals(cheminDijkstra.getList(),cheminConstrainedA.getList());
     }
 
 }

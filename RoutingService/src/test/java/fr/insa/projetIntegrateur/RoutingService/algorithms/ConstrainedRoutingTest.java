@@ -106,7 +106,7 @@ public class ConstrainedRoutingTest {
     void testDijkstra_BasicShortestPath() {
         ConstrainedDijkstra algo = new ConstrainedDijkstra();
         // Req 0.5: All arcs (0.6, 0.9, 0.95) are >= 0.45. All are valid.
-        List<Noeud> path = algo.shortestPath(graph, 1, 4,2, 0.5, 0.5, 0.5);
+        List<Noeud> path = algo.shortestPath(graph, 1, 4,2, 0.5, 0.5, 0.5).getList();
 
         assertFalse(path.isEmpty(), "Dijkstra should find a valid path");
         double totalLength = computePathLength(graph,path);
@@ -117,7 +117,7 @@ public class ConstrainedRoutingTest {
     @Test
     void testAstar_BasicShortestPath() {
         ConstrainedAstar algo = new ConstrainedAstar();
-        List<Noeud> path = algo.shortestPath(graph, 1, 4,2, 0.5, 0.5, 0.5);
+        List<Noeud> path = algo.shortestPath(graph, 1, 4,2, 0.5, 0.5, 0.5).getList();
 
         assertFalse(path.isEmpty(), "A* should find a valid path");
         double totalLength = computePathLength(graph,path);
@@ -130,7 +130,7 @@ public class ConstrainedRoutingTest {
         // Req 0.9: Threshold is 0.85.
         // Arc 2->3 (Security 0.6) < 0.85 -> REJECTED.
         // Arc 1->4 (Security 0.95) >= 0.85 -> ACCEPTED.
-        List<Noeud> path = algo.shortestPath(graph, 1, 4, 2,0.9, 0.5, 0.5);
+        List<Noeud> path = algo.shortestPath(graph, 1, 4, 2,0.9, 0.5, 0.5).getList();
 
         assertFalse(path.isEmpty());
         double totalLength = computePathLength(graph,path);
@@ -141,7 +141,7 @@ public class ConstrainedRoutingTest {
     @Test
     void testAstar_WithHighSecurityRequirement() {
         ConstrainedAstar algo = new ConstrainedAstar();
-        List<Noeud> path = algo.shortestPath(graph, 1, 4,2, 0.9, 0.5, 0.5);
+        List<Noeud> path = algo.shortestPath(graph, 1, 4,2, 0.9, 0.5, 0.5).getList();
 
         assertFalse(path.isEmpty());
         double totalLength = computePathLength(graph,path);
@@ -153,8 +153,8 @@ public class ConstrainedRoutingTest {
         ConstrainedAstar astar = new ConstrainedAstar();
         ConstrainedDijkstra dijkstra = new ConstrainedDijkstra();
 
-        List<Noeud> pathA = astar.shortestPath(graph, 1, 4,2, 0.6, 0.6, 0.6);
-        List<Noeud> pathD = dijkstra.shortestPath(graph, 1, 4,2, 0.6, 0.6, 0.6);
+        List<Noeud> pathA = astar.shortestPath(graph, 1, 4,2, 0.6, 0.6, 0.6).getList();
+        List<Noeud> pathD = dijkstra.shortestPath(graph, 1, 4,2, 0.6, 0.6, 0.6).getList();
 
         double lenA = computePathLength(graph,pathA);
         double lenD = computePathLength(graph,pathD);

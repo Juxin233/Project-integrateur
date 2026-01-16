@@ -2,6 +2,7 @@ package fr.insa.projetIntegrateur.RoutingService.service;
 
 import fr.insa.projetIntegrateur.RoutingService.model.Graph;
 import fr.insa.projetIntegrateur.RoutingService.model.Noeud;
+import fr.insa.projetIntegrateur.RoutingService.model.Reponse;
 
 import java.util.List;
 
@@ -31,21 +32,21 @@ public class PathService {
 	        }
 	    }
 
-	    public List<Noeud> calculerDijkstra(long start, long end,int type) {
+	    public Reponse calculerDijkstra(long start, long end,int type) {
 	        return new Dijkstra().shortestPath(graphe, start, end,type);
 	    }
 	    
 	    
-	    public List<Noeud> calculerAstar(long start, long end,int type) {
+	    public Reponse calculerAstar(long start, long end,int type) {
 	        return new Astar().shortestPath(graphe, start, end,type);
 	    }
 
-		public List<Noeud> calculerCheminFiltre(long start, long end,int type, double sec, double conf, double diff) {
+		public Reponse calculerCheminFiltre(long start, long end,int type, double sec, double conf, double diff) {
 			ConstrainedDijkstra algo = new ConstrainedDijkstra();
 			return algo.shortestPath(graphe, start, end, type,sec, conf, diff);
 		}
 		
-        public List<Noeud> calculerCheminFiltreAstar(long start, long end,int type,double sec, double conf, double diff) {
+        public Reponse calculerCheminFiltreAstar(long start, long end,int type,double sec, double conf, double diff) {
             	ConstrainedAstar algoAstar = new ConstrainedAstar();
             	return algoAstar.shortestPath(graphe, start, end, type, sec, conf, diff);
         }
