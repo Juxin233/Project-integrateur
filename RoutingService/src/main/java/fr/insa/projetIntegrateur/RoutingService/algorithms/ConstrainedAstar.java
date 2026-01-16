@@ -216,7 +216,7 @@ public class ConstrainedAstar {
      * Reconstructs node path from startId to goalId using cameFrom map (nodeId -> arc used).
      * Returns empty list if reconstruction fails (should not happen when algorithm is correct).
      */
-    private Reponse reconstructPath(Graph graphe, Map<Long, Arc> cameFrom, long startId, long goalId,int type) {
+    private Reponse reconstructPath(Graph graphe, Map<Long, Arc> cameFrom, long startId, long goalId,int type,boolean change) {
         LinkedList<Noeud> path = new LinkedList<>();
 
         long currentId = goalId;
@@ -260,6 +260,6 @@ public class ConstrainedAstar {
         diff = diff/counter;
         risque = risque/counter;
 
-        return new Reponse(path,confort,diff,risque,type,this.constraintsRelaxed);
+        return new Reponse(path,confort,diff,risque,type,change);
     }
 }

@@ -156,9 +156,9 @@ public class ConstrainedRoutingTest {
         Reponse result = algo.shortestPath(graph, 1, 5, 2, 0.8, 0.5, 0.5);
 
         assertFalse(result.getList().isEmpty(), "Path should be found via relaxation");
-        assertTrue(result.getChange(), "Constraints MUST have been relaxed to cross the unsafe arc");
+        assertTrue(result.isProfil_change(), "Constraints MUST have been relaxed to cross the unsafe arc");
 
-        assertEquals(5, result.path.get(result.path.size()-1).getId());
+        assertEquals(5, result.getList().get(result.getList().size()-1).getId());
     }
 
     @Test
@@ -169,12 +169,12 @@ public class ConstrainedRoutingTest {
         addArc(n4, n5, 50, 0.2, 0.5, 0.5);
 
         ConstrainedAstar algo = new ConstrainedAstar();
-        PathService.PathResult result = algo.shortestPath(graph, 1, 5, 2, 0.8, 0.5, 0.5);
+        Reponse result = algo.shortestPath(graph, 1, 5, 2, 0.8, 0.5, 0.5);
 
-        assertFalse(result.path.isEmpty(), "A* should find path via relaxation");
-        assertTrue(result.constraintsRelaxed, "Constraints MUST have been relaxed");
+        assertFalse(result.getList().isEmpty(), "A* should find path via relaxation");
+        assertTrue(result.isProfil_change(), "Constraints MUST have been relaxed");
 
-        assertEquals(5, result.path.get(result.path.size()-1).getId());
+        assertEquals(5, result.getList().get(result.getList().size()-1).getId());
     }
 
     @Test
