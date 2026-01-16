@@ -11,7 +11,7 @@ public class Reponse {
 	private int typeVoie;
 	private boolean profil_change;
 	
-	public Reponse(List<Noeud> list, double confort,double diff,double risque, int typeVoie,boolean profile_change) {
+	public Reponse(List<Noeud> list, double confort,double diff,double risque, int typeVoie,boolean profil_change) {
 		this.list=list;
 		this.confort= confort;
 		this.diff=diff;

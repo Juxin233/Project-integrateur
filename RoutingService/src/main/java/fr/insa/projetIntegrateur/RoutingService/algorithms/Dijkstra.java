@@ -101,7 +101,6 @@ public class Dijkstra {
             Arc arc = prevArc.get(cur); 
             path.addFirst(arc.getDestination());
             cur = arc.getOrigine().getId();
-            System.out.println(arc.getConfortPieton()+" "+ arc.getConfortPieton() +" "+ arc.getRisquePieton());
             switch (type) {
             	case 0:
             		confort += arc.getConfortPieton();
@@ -120,9 +119,7 @@ public class Dijkstra {
             		break;
             }
             counter++;
-            System.out.println(confort +" "+diff +" "+risque);
         }
-        System.out.println(confort +" "+diff +" "+risque);
         path.addFirst(startNode);
         confort = confort / counter;
         diff = diff/counter;

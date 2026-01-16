@@ -57,7 +57,7 @@ public class ConstrainedAstar {
         this.curConf = minComfort;
         this.curDiff = minDifficulty;
 
-        if (graphe == null) return new new Reponse(Collections.emptyList(),0,0,0,type,false);
+        if (graphe == null) return new Reponse(Collections.emptyList(),0,0,0,type,false);
 
         Noeud start = graphe.getNoeud(startId);
         Noeud goal = graphe.getNoeud(goalId);

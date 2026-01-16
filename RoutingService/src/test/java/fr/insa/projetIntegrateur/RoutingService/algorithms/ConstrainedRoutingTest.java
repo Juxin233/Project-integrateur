@@ -104,7 +104,7 @@ public class ConstrainedRoutingTest {
         Reponse path = algo.shortestPath(graph, 1, 4,2, 0.5, 0.5, 0.5);
 
         assertFalse(path.getList().isEmpty(), "Dijkstra should find a valid path");
-        assertFalse(path.getProfil_change,"Constraints should NOT be relaxed for easy path")
+        assertFalse(path.isProfil_change(),"Constraints should NOT be relaxed for easy path");
         double totalLength = computePathLength(graph,path.getList());
         // Should choose 1->2->3->4 (100+150+200 = 450) over 1->4 (800)
         assertEquals(450, totalLength, 1e-6, "Expected 1->2->3->4 path (100+150+200)");
@@ -116,7 +116,7 @@ public class ConstrainedRoutingTest {
         Reponse path = algo.shortestPath(graph, 1, 4,2, 0.5, 0.5, 0.5);
 
         assertFalse(path.getList().isEmpty(), "A* should find a valid path");
-        assertFalse(path.getProfil_change,"Constraints should NOT be relaxed for easy path")
+        assertFalse(path.isProfil_change(),"Constraints should NOT be relaxed for easy path");
         double totalLength = computePathLength(graph, path.getList());
         assertEquals(450, totalLength, 1e-6);
     }
@@ -149,7 +149,7 @@ public class ConstrainedRoutingTest {
         assertFalse(result.getList().isEmpty());
         // Same logic as Dijkstra
         assertTrue(result.isProfil_change(), "A* should relax constraints when shorter path is blocked");
-        assertEquals(450, computePathLength(graph, result.path), 1e-6);
+        assertEquals(450, computePathLength(graph, result.getList()), 1e-6);
     }
 
     @Test
@@ -165,7 +165,7 @@ public class ConstrainedRoutingTest {
         assertFalse(result.getList().isEmpty(), "Path should be found via relaxation");
         assertTrue(result.isProfil_change(), "Constraints MUST have been relaxed to cross the unsafe arc");
         
-        assertEquals(5, result.getList().get(result.path.size()-1).getId());
+        assertEquals(5, result.getList().get(result.getList().size()-1).getId());
     }
 
     @Test
@@ -181,7 +181,7 @@ public class ConstrainedRoutingTest {
         assertFalse(result.getList().isEmpty(), "A* should find path via relaxation");
         assertTrue(result.isProfil_change(), "Constraints MUST have been relaxed");
         
-        assertEquals(5, result.path.get(result.path.size()-1).getId());
+        assertEquals(5, result.getList().get(result.getList().size()-1).getId());
     }
 
     @Test
