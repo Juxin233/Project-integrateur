@@ -1,20 +1,25 @@
 import { MapContainer, TileLayer, GeoJSON } from "react-leaflet";
 import { useEffect, useState } from "react";
-import type { LatLngExpression } from "leaflet"; // Fixed type import
-import "leaflet/dist/leaflet.css"; // Fixed by vite-env.d.ts
+import type { LatLngExpression } from "leaflet"; 
+import "leaflet/dist/leaflet.css";
 import Navbar from "../components/Navbar";
+
+// We keep this robust import method you have
+import routeGeoJsonRaw from "./test.geojson?raw";
 
 export default function ItineraryPage() {
   const [routeData, setRouteData] = useState<any>(null);
 
-  // London coordinates
+  // London coordinates (default center)
   const centerPosition: LatLngExpression = [51.5074, -0.1276];
 
   useEffect(() => {
-    // Dynamic import for the GeoJSON file
-    import("./test.geojson").then((module) => {
-      setRouteData(module.default);
-    });
+    try {
+      const parsed = JSON.parse(routeGeoJsonRaw);
+      setRouteData(parsed);
+    } catch (err) {
+      console.error("Invalid GeoJSON:", err);
+    }
   }, []);
 
   return (
@@ -22,24 +27,30 @@ export default function ItineraryPage() {
       <Navbar />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 h-full flex flex-col">
+        {/* Header Section */}
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-semibold text-slate-900">Itinerary Planner</h1>
-          <button className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 shadow-sm transition">
-            New Route
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900">Itinerary Planner</h1>
+            <p className="text-sm text-slate-500 mt-1">View and manage your travel routes</p>
+          </div>
+          
+          <button className="bg-slate-900 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-slate-800 shadow-sm transition-colors">
+            + New Route
           </button>
         </div>
 
-        <div className="flex-1 bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden relative" style={{ minHeight: "600px" }}>
+        {/* Map Card */}
+        <div className="flex-1 bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden relative min-h-[600px]">
           <MapContainer
             center={centerPosition}
             zoom={13}
-            style={{ height: "100%", width: "100%" }}
-            className="z-0"
+            className="w-full h-full z-0"
           >
             <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
+
             {routeData && <GeoJSON data={routeData} />}
           </MapContainer>
         </div>
