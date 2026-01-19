@@ -1,8 +1,10 @@
 import type { User } from "../types/userTypes";
 import apiClient from "./client";
+
+
 export async function loginApi( email: string,password: string): Promise<User | null> {
 
-  const res = await apiClient.post("login", {// post API
+  const res = await apiClient.post("/login", {// post API
     email,
     password,
   });

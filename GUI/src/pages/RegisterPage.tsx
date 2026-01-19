@@ -1,86 +1,112 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
+import { useState } from "react";
+import { registerApi } from "../api/register";
+
+
 
 type RegisterFormData = {
-  LastName: string;
-  FirstName: string;
+  lastName: string;
+  firstName: string;
   email: string;
   password: string;
+  confirmPassword: string;
 };
 
 export default function RegisterPage() {
   const navigate = useNavigate();
+  const [serverError, setServerError] = useState("");
 
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormData>();
 
+  const passwordValue = watch("password");
+
   const onSubmit = async (data: RegisterFormData) => {
-    console.log("Register data:", data);
+    setServerError("");
 
-    // TODO: call backend register API
-    await new Promise((res) => setTimeout(res, 800));
+    try {
+      // call register API
+      await registerApi({
+        firstName: data.firstName.trim(),
+        lastName: data.lastName.trim(),
+        email: data.email.trim(),
+        password: data.password,
+        // opcionales si los necesitas luego:
+        // idProfileDefault: 0,
+        // customProfile: null,
+      });
 
-    navigate("/");
+      // after successful registration, navigate to login
+      navigate("/");
+    } catch (e: any) {
+      console.error(e);
+
+      // Generic message 
+      setServerError("Unable to create account. Please try again.");
+    }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-10">
-
         {/* Logo placeholder */}
-      <img
-  src="/logo.jpg"
-  alt="App logo"
-  className="w-32 h-32 object-contain"
-/>
+        <div className="flex justify-center mb-4">
+          <div className="w-32 h-32 rounded-xl bg-gray-100 flex items-center justify-center text-gray-500">
+            Logo
+          </div>
+        </div>
 
+        <h1 className="text-2xl font-bold text-center mb-6">Create account</h1>
 
-        <h1 className="text-2xl font-bold text-center mb-6">
-          Create account
-        </h1>
+        {serverError && (
+          <div className="mb-4 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+            {serverError}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-
-          {/* Name */}
+          {/* Last name */}
           <div>
             <input
               type="text"
               placeholder="Last name"
               className={`w-full rounded-lg border px-4 py-2 focus:outline-none focus:ring-2 ${
-                errors.LastName
+                errors.lastName
                   ? "border-red-500 focus:ring-red-400"
                   : "border-gray-300 focus:ring-blue-500"
               }`}
-              {...register("LastName", {
-                required: "Lastname is required",
+              {...register("lastName", {
+                required: "Last name is required",
               })}
+              disabled={isSubmitting}
             />
-            {errors.LastName && (
-              <p className="mt-1 text-sm text-red-600">
-                {errors.LastName.message}
-              </p>
+            {errors.lastName && (
+              <p className="mt-1 text-sm text-red-600">{errors.lastName.message}</p>
             )}
           </div>
+
+          {/* First name */}
           <div>
             <input
               type="text"
               placeholder="First name"
               className={`w-full rounded-lg border px-4 py-2 focus:outline-none focus:ring-2 ${
-                errors.FirstName
+                errors.firstName
                   ? "border-red-500 focus:ring-red-400"
                   : "border-gray-300 focus:ring-blue-500"
               }`}
-              {...register("FirstName", {
-                required: "FirstName  is required",
+              {...register("firstName", {
+                required: "First name is required",
               })}
+              disabled={isSubmitting}
             />
-            {errors.FirstName && (
-              <p className="mt-1 text-sm text-red-600">
-                {errors.FirstName.message}
-              </p>
+            {errors.firstName && (
+              <p className="mt-1 text-sm text-red-600">{errors.firstName.message}</p>
             )}
           </div>
 
@@ -96,12 +122,15 @@ export default function RegisterPage() {
               }`}
               {...register("email", {
                 required: "Email is required",
+                pattern: {
+                  value: /^\S+@\S+\.\S+$/,
+                  message: "Invalid email format",
+                },
               })}
+              disabled={isSubmitting}
             />
             {errors.email && (
-              <p className="mt-1 text-sm text-red-600">
-                {errors.email.message}
-              </p>
+              <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
             )}
           </div>
 
@@ -117,15 +146,35 @@ export default function RegisterPage() {
               }`}
               {...register("password", {
                 required: "Password is required",
-                minLength: {
-                  value: 6,
-                  message: "Minimum 6 characters",
-                },
+                minLength: { value: 6, message: "Minimum 6 characters" },
               })}
+              disabled={isSubmitting}
             />
             {errors.password && (
+              <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+            )}
+          </div>
+
+          {/* Confirm password */}
+          <div>
+            <input
+              type="password"
+              placeholder="Confirm password"
+              className={`w-full rounded-lg border px-4 py-2 focus:outline-none focus:ring-2 ${
+                errors.confirmPassword
+                  ? "border-red-500 focus:ring-red-400"
+                  : "border-gray-300 focus:ring-blue-500"
+              }`}
+              {...register("confirmPassword", {
+                required: "Please confirm your password",
+                validate: (val) =>
+                  val === passwordValue || "Passwords do not match",
+              })}
+              disabled={isSubmitting}
+            />
+            {errors.confirmPassword && (
               <p className="mt-1 text-sm text-red-600">
-                {errors.password.message}
+                {errors.confirmPassword.message}
               </p>
             )}
           </div>

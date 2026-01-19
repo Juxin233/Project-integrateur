@@ -14,7 +14,7 @@ export default function AppRoutes() {
        <Route path="/register" element={<RegisterPage />} />
         <Route path="/itinerary" element={<ItineraryPage />} />
       <Route
-          path="/infoUser" element={ <ProtectedRoute>
+          path="/InfoUserPage" element={ <ProtectedRoute>
  <InfoUserPage />
             </ProtectedRoute>
           }
