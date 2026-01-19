@@ -37,10 +37,10 @@ public class GatewayServiceResource {
     //=================================================
 
     private final RestTemplate restTemplate;
-    private final String USER_MS_URL = "http://localhost:8080/user";
+    private final String USER_MS_URL = "http://UserService/user";
     private final String ROUTING_MS_URL = "http://RoutingService/routing";
     private final String DATABASE_MS_URL = "http://DatabaseService/database";
-    private final String GUI_URL = "http://localhost:????/gui";
+    //private final String GUI_URL = "http://GUI/gui";
     
     @Autowired
     public GatewayServiceResource(RestTemplate restTemplate) {
@@ -624,10 +624,6 @@ public class GatewayServiceResource {
                     .body("{\"error\":\"Error during database update.\"}");
         }
     }
-    
-    //=================================================
-    // GUI
-    //=================================================
     
     //=================================================
     // UTILITY METHODS
