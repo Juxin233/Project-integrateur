@@ -1,10 +1,3 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-body {
-  background-color: #f3f4f6;
-}
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 @tailwind base;
@@ -16,20 +9,18 @@ body {
 }
 
 body {
-  @apply bg-slate-50 text-slate-900;
+  /* This adds a very subtle radial gradient */
+  background: radial-gradient(circle at 50% 0%, #f1f5f9 0%, #e2e8f0 100%);
+  min-height: 100vh;
+  @apply text-slate-900;
   margin: 0;
 }
 
-/* Optional: Custom scrollbar for a tighter feel */
-::-webkit-scrollbar {
-  width: 8px;
+/* Make cards pop more */
+.card-shine {
+  @apply bg-white border border-slate-200 shadow-sm transition-all duration-300;
 }
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  @apply bg-slate-300 rounded-full;
-}
-::-webkit-scrollbar-thumb:hover {
-  @apply bg-slate-400;
+
+.card-shine:hover {
+  @apply shadow-md border-blue-200 transform -translate-y-0.5;
 }
