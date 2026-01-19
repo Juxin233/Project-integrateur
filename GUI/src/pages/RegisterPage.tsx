@@ -52,66 +52,36 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-10">
-        {/* Logo placeholder */}
-        <div className="flex justify-center mb-4">
-          <div className="w-32 h-32 rounded-xl bg-gray-100 flex items-center justify-center text-gray-500">
-            Logo
-          </div>
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
+      <div className="w-full max-w-sm bg-white rounded-lg border border-slate-200 shadow-sm p-8">
+        
+        <div className="text-center mb-8">
+          <h1 className="text-xl font-semibold text-slate-900">Create account</h1>
+          <p className="text-sm text-slate-500 mt-1">Start your journey with us</p>
         </div>
 
-        <h1 className="text-2xl font-bold text-center mb-6">Create account</h1>
-
-        {serverError && (
-          <div className="mb-4 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
-            {serverError}
-          </div>
-        )}
-
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {/* Last name */}
-          <div>
-            <input
-              type="text"
-              placeholder="Last name"
-              className={`w-full rounded-lg border px-4 py-2 focus:outline-none focus:ring-2 ${
-                errors.lastName
-                  ? "border-red-500 focus:ring-red-400"
-                  : "border-gray-300 focus:ring-blue-500"
-              }`}
-              {...register("lastName", {
-                required: "Last name is required",
-              })}
-              disabled={isSubmitting}
-            />
-            {errors.lastName && (
-              <p className="mt-1 text-sm text-red-600">{errors.lastName.message}</p>
-            )}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-1">First Name</label>
+              <input
+                type="text"
+                className="w-full rounded-md border border-slate-300 text-sm px-3 py-2 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                {...register("FirstName", { required: true })}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-1">Last Name</label>
+              <input
+                type="text"
+                className="w-full rounded-md border border-slate-300 text-sm px-3 py-2 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                {...register("LastName", { required: true })}
+              />
+            </div>
           </div>
 
-          {/* First name */}
           <div>
-            <input
-              type="text"
-              placeholder="First name"
-              className={`w-full rounded-lg border px-4 py-2 focus:outline-none focus:ring-2 ${
-                errors.firstName
-                  ? "border-red-500 focus:ring-red-400"
-                  : "border-gray-300 focus:ring-blue-500"
-              }`}
-              {...register("firstName", {
-                required: "First name is required",
-              })}
-              disabled={isSubmitting}
-            />
-            {errors.firstName && (
-              <p className="mt-1 text-sm text-red-600">{errors.firstName.message}</p>
-            )}
-          </div>
-
-          {/* Email */}
-          <div>
+            <label className="block text-xs font-medium text-slate-700 mb-1">Email</label>
             <input
               type="email"
               placeholder="Email address"
@@ -134,21 +104,12 @@ export default function RegisterPage() {
             )}
           </div>
 
-          {/* Password */}
           <div>
+            <label className="block text-xs font-medium text-slate-700 mb-1">Password</label>
             <input
               type="password"
-              placeholder="Password"
-              className={`w-full rounded-lg border px-4 py-2 focus:outline-none focus:ring-2 ${
-                errors.password
-                  ? "border-red-500 focus:ring-red-400"
-                  : "border-gray-300 focus:ring-blue-500"
-              }`}
-              {...register("password", {
-                required: "Password is required",
-                minLength: { value: 6, message: "Minimum 6 characters" },
-              })}
-              disabled={isSubmitting}
+              className="w-full rounded-md border border-slate-300 text-sm px-3 py-2 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              {...register("password", { required: true, minLength: 6 })}
             />
             {errors.password && (
               <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
@@ -182,15 +143,15 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50"
+            className="w-full bg-slate-900 text-white py-2.5 rounded-md text-sm font-medium hover:bg-slate-800 transition disabled:opacity-50 mt-2"
           >
-            {isSubmitting ? "Creating account..." : "Sign up"}
+            {isSubmitting ? "Creating..." : "Sign up"}
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-gray-600">
+        <p className="mt-6 text-center text-xs text-slate-500">
           Already have an account?{" "}
-          <Link to="/" className="text-blue-600 hover:underline">
+          <Link to="/" className="text-blue-600 hover:underline font-medium">
             Sign in
           </Link>
         </p>

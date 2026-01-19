@@ -1,7 +1,26 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
 body {
-  background-color: #f3f4f6;
+  /* This adds a very subtle radial gradient */
+  background: radial-gradient(circle at 50% 0%, #f1f5f9 0%, #e2e8f0 100%);
+  min-height: 100vh;
+  @apply text-slate-900;
+  margin: 0;
+}
+
+/* Make cards pop more */
+.card-shine {
+  @apply bg-white border border-slate-200 shadow-sm transition-all duration-300;
+}
+
+.card-shine:hover {
+  @apply shadow-md border-blue-200 transform -translate-y-0.5;
 }

@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { loginApi } from "../api/auth";
 
 type LoginForm = {
@@ -12,84 +12,93 @@ export default function LoginPage() {
   const { register, handleSubmit } = useForm<LoginForm>();
   const navigate = useNavigate();
   const [error, setError] = useState("");
-    const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const onSubmit = async (data: LoginForm) => {
     setError("");
     setLoading(true);
-
-
     try {
       const user = await loginApi(data.email, data.password);
-
       if (!user) {
         setError("Invalid email or password");
-        return; // stop here
+        setLoading(false);
+        return;
       }
-
-      //Save session
       localStorage.setItem("session", JSON.stringify({ user }));
-
-      // go to info user  page
- 
-      navigate("/InfoUserPage ");
-
+      navigate("/infoUser"); // Fixed route case
     } catch (err) {
       console.error(err);
       setError("Server error, try again later");
+      setLoading(false);
     }
   };
- return (
-    <div className="login-container">
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <h2>Login</h2>
 
-        <input
-          {...register("email")}
-          placeholder="Email"
-          type="email"
-          required
-          disabled={loading}
-        />
-
-        <input
-          {...register("password")}
-          placeholder="Password"
-          type="password"
-          required
-          disabled={loading}
-        />
-
-        {error && (
-          <div
-            style={{
-              marginTop: 10,
-              padding: 10,
-              borderRadius: 8,
-              background: "#ffe5e5",
-              color: "#b00020",
-            }}
-          >
-            {error}
+  return (
+    <div className="min-h-screen flex bg-slate-50">
+      {/* Left Side - Brand */}
+      <div className="hidden lg:flex lg:w-1/2 bg-slate-900 relative items-center justify-center overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-slate-900 opacity-90" />
+        <div className="relative z-10 p-12 text-white max-w-lg">
+          <div className="mb-8 w-14 h-14 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/20">
+            <span className="text-2xl font-bold">MA</span>
           </div>
-        )}
+          <h1 className="text-4xl font-bold mb-4">Plan your journey.</h1>
+          <p className="text-slate-300 text-lg">
+            Manage your itineraries with precision and ease in one single platform.
+          </p>
+        </div>
+      </div>
 
-        <button type="submit" disabled={loading} style={{ marginTop: 12 }}>
-          {loading ? "Signing in..." : "Login"}
-        </button>
+      {/* Right Side - Form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
+        <div className="max-w-md w-full bg-white p-8 rounded-lg border border-slate-200 shadow-sm">
+          <h2 className="text-2xl font-bold text-slate-900 mb-2">Welcome back</h2>
+          <p className="text-sm text-slate-500 mb-8">Please enter your details to sign in.</p>
 
-        {/* Create user */}
-        <button
-          type="button"
-          onClick={() => navigate("/register")}
-          disabled={loading}
-          style={{
-            marginTop: 10
-          }}
-        >
-          Create user
-        </button>
-      </form>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+              <input
+                {...register("email")}
+                type="email"
+                className="w-full h-10 px-3 rounded-md border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                disabled={loading}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+              <input
+                {...register("password")}
+                type="password"
+                className="w-full h-10 px-3 rounded-md border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                disabled={loading}
+              />
+            </div>
+
+            {error && (
+              <div className="p-3 text-sm text-red-600 bg-red-50 rounded-md border border-red-100">
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full h-10 bg-slate-900 text-white text-sm font-medium rounded-md hover:bg-slate-800 transition-colors disabled:opacity-70"
+            >
+              {loading ? "Signing in..." : "Sign in"}
+            </button>
+
+            <div className="text-center mt-6">
+              <span className="text-sm text-slate-500">Don't have an account? </span>
+              <Link to="/register" className="text-sm font-medium text-blue-600 hover:text-blue-700">
+                Sign up
+              </Link>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
   );
 }
