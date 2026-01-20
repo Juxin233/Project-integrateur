@@ -1,34 +1,97 @@
 package fr.insa.projectIntegrateur.DatabaseService.service;
 
 import java.io.InputStream;
+import java.io.ByteArrayInputStream;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import fr.insa.projectIntegrateur.DatabaseService.utils.*;
 
 @Service
 public class DatabaseService {
-
+	private  RestTemplate rest;
+	private final int DBKey = 123456;
+	
 	public DatabaseService() {
+		this.rest=new RestTemplate();
 	}
 	
-	public void reset() {
-		String[] args = {};
-		try {
-			GeoJsonToPostgresImporter.main(args);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-	
-	public void update(InputStream content) {
+	public String reset(int key) {
+		if(key==DBKey) {
+			String[] args = {};
+			try {
+				GeoJsonToPostgresImporter.main(args);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    		return "Database reset successfully";
+    	}else {
+    		return "Authentification failed";
+    	}
 		
-		try {
-			System.out.println(PostgreUpdate.updateFromGeoJson(content));
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+	}
+	
+	public void update(double latA,double lonA,double latB,double lonB,int typeVoie) {
+		String urlPieton = "http://path/to/subgraph/microservice"+"?lonA={lonA}&latA={latA}&lonB={lonB}&latB={latB}";
+		String urlVelo = "http://path/to/subgraph/microservice"+"?lonA={lonA}&latA={latA}&lonB={lonB}&latB={latB}";
+		switch (typeVoie) {
+		case 0:
+	    	byte[] bodyPieton = rest.getForObject(urlPieton, byte[].class,Map.of(
+	    			"lonA",lonA,
+	    			"latA",latA,
+	    			"lonB",lonB,
+	    			"latB",latB
+	    			)
+	    		);
+	    	if(bodyPieton ==null) {
+	    		throw new IllegalStateException("Empty response body from sub graph service");
+	    	}
+	    	try {
+	    		InputStream contentPieton = ByteArrayInputStream(bodyPieton);
+				PostgreUpdate.updateFromJson(contentPieton,0);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			break;
+		case 1:
+			byte[] bodyVelo = rest.getForObject(urlVelo, byte[].class,Map.of(
+	    			"lonA",lonA,
+	    			"latA",latA,
+	    			"lonB",lonB,
+	    			"latB",latB
+	    			)
+	    		);
+	    	if(bodyVelo ==null) {
+	    		throw new IllegalStateException("Empty response body from sub graph service");
+	    	}
+	    	try {
+	    		InputStream contentPieton = ByteArrayInputStream(bodyVelo);
+				PostgreUpdate.updateFromJson(contentPieton,1);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			break;
+		default :
+			byte[] body = rest.getForObject(urlPieton, byte[].class,Map.of(
+	    			"lonA",lonA,
+	    			"latA",latA,
+	    			"lonB",lonB,
+	    			"latB",latB
+	    			)
+	    		);
+	    	if(body ==null) {
+	    		throw new IllegalStateException("Empty response body from sub graph service");
+	    	}
+	    	try {
+	    		InputStream contentPieton = ByteArrayInputStream(body);
+				PostgreUpdate.updateFromJson(contentPieton,0);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			break;
 		}
 	}
 	

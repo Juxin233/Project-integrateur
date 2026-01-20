@@ -18,20 +18,23 @@ class PathServiceTest {
         long startId = 5561695614L;
         long endId = 13334782210L;
 
-        Reponse cheminDijkstra = service.calculerDijkstra(startId, endId,2);
-        Reponse cheminA= service.calculerAstar(startId, endId,2);
-        Reponse cheminConstrainedDijkstra=service.calculerCheminFiltre(startId, endId, 2, 0.5,0.5,0.5);
-        Reponse cheminConstrainedA=service.calculerCheminFiltreAstar(startId, endId, 2, 0.5,0.5,0.5);
-        System.out.print("Dijkstra: " + cheminDijkstra.getList() + "\n");
+        Reponse cheminDijkstra = service.calculerDijkstra(startId, endId,2,4);
+        Reponse cheminA= service.calculerAstar(startId, endId,2,4);
+        Reponse cheminConstrainedDijkstra=service.calculerCheminFiltre(startId, endId, 2,4, 0.9, 0.9, 0.9);
+        Reponse cheminConstrainedA=service.calculerCheminFiltreAstar(startId, endId,   2,4, 0.9, 0.9, 0.9);
+        //0.801229431274361 0.801229431274361 0.8479567415605785  (0.0, 0.0, 0.0)
+        //0.801229431274361 0.801229431274361 0.8479567415605785  (0.5, 0.5, 0.5)
+        //0.7506563965814037 0.7506563965814037 0.8109046316257341(0.6, 0.6, 0.6)-(1.0,1.0,1.0)
+        System.out.print("Dijkstra: \n" + cheminDijkstra.getList() + "\n");
         System.out.println(cheminDijkstra.getConfort()+" "+cheminDijkstra.getDiff()+" "+cheminDijkstra.getRisque());
         System.out.print("\n");
-        System.out.print("A*: " + cheminA.getList() + "\n");
+        System.out.print("A*\n: " + cheminA.getList() + "\n");
         System.out.println(cheminA.getConfort()+" "+cheminA.getDiff()+" "+cheminA.getRisque());
         System.out.print("\n");
-        System.out.print("Constrained Dijkstra Path: " + cheminConstrainedDijkstra.getList() + "\n");
+        System.out.print("Constrained Dijkstra Path: \n" + cheminConstrainedDijkstra.getList() + "\n");
         System.out.println(cheminConstrainedDijkstra.getConfort()+" "+cheminConstrainedDijkstra.getDiff()+" "+cheminConstrainedDijkstra.getRisque());
         System.out.print("\n");
-        System.out.print("Constrained A* Path: " + cheminConstrainedA.getList() + "\n");
+        System.out.print("Constrained A* Path: \n" + cheminConstrainedA.getList() + "\n");
         System.out.println(cheminConstrainedA.getConfort()+" "+cheminConstrainedA.getDiff()+" "+cheminConstrainedA.getRisque());
         System.out.print("\n");
         System.out.print("Relaxed (Dijkstra): " + cheminConstrainedDijkstra.isProfil_change()+ "\n");

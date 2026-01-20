@@ -90,7 +90,7 @@ public class GeoJsonLoader {
                 long fromOsm = props.get("from_node").asLong();
                 long toOsm = props.get("to_node").asLong();
                 long arcId = props.get("osm_way_id").asLong();
-                String typeVoie = props.has("highway") ? props.get("highway").asText() : null;
+                int typeVoie = 2;
                 String onewayVal = props.has("oneway") ? props.get("oneway").asText() : "no";
 
                 int n = coords.size();
@@ -122,20 +122,20 @@ public class GeoJsonLoader {
                 double diffPieton = randIndicator();
 
                 switch (onewayVal) {
-                    case "yes" -> g.ajouterArc(new Arc(a, b, dist, typeVoie, arcId,
+                    case "yes" -> g.ajouterArc(new Arc(a, b, dist, typeVoie, 4,1,arcId,
                             risquePieton, risqueVelo, confortPieton, confortVelo, diffVelo, diffPieton));
                     case "no" -> {
-                        g.ajouterArc(new Arc(a, b, dist, typeVoie, arcId,
+                        g.ajouterArc(new Arc(a, b, dist, typeVoie, 4,1,arcId,
                                 risquePieton, risqueVelo, confortPieton, confortVelo, diffVelo, diffPieton));
-                        g.ajouterArc(new Arc(b, a, dist, typeVoie, arcId,
+                        g.ajouterArc(new Arc(b, a, dist, typeVoie, 4,1,arcId,
                                 risquePieton, risqueVelo, confortPieton, confortVelo, diffVelo, diffPieton));
                     }
-                    case "-1" -> g.ajouterArc(new Arc(b, a, dist, typeVoie, arcId,
+                    case "-1" -> g.ajouterArc(new Arc(b, a, dist, typeVoie, 4,1,arcId,
                             risquePieton, risqueVelo, confortPieton, confortVelo, diffVelo, diffPieton));
                     default -> {
-                        g.ajouterArc(new Arc(a, b, dist, typeVoie, arcId,
+                        g.ajouterArc(new Arc(a, b, dist, typeVoie, 4,1,arcId,
                                 risquePieton, risqueVelo, confortPieton, confortVelo, diffVelo, diffPieton));
-                        g.ajouterArc(new Arc(b, a, dist, typeVoie, arcId,
+                        g.ajouterArc(new Arc(b, a, dist, typeVoie, 4,1,arcId,
                                 risquePieton, risqueVelo, confortPieton, confortVelo, diffVelo, diffPieton));
                     }
                 }

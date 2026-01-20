@@ -31,6 +31,7 @@ public class ConstrainedDijkstra {
                                     long startId,
                                     long endId,
                                     int type,
+                                    int access,
                                     double minSecurity,
                                     double minComfort,
                                     double minDifficulty) {
@@ -87,7 +88,7 @@ public class ConstrainedDijkstra {
                     }
 
                     // Check validity using the "Global" current variables
-                    if (isArcValid(arc, type, this.curSec, this.curConf, this.curDiff)) {
+                    if (isArcValid(arc, type,access ,this.curSec, this.curConf, this.curDiff)) {
                         hasValidArc = true;
                         break;
                     }
@@ -124,7 +125,7 @@ public class ConstrainedDijkstra {
                 if (roadType != type && roadType != 2) continue;
 
                 // Use the updated Global constraints
-                if (!isArcValid(arc, type, this.curSec, this.curConf, this.curDiff)) continue;
+                if (!isArcValid(arc, type, access,this.curSec, this.curConf, this.curDiff)) continue;
 
                 Noeud dest = arc.getDestination();
                 if (dest == null) continue;
@@ -152,6 +153,7 @@ public class ConstrainedDijkstra {
 
     private boolean isArcValid(Arc arc,
                               int type,
+                              int access,
                               double minSecurity,
                               double minComfort,
                               double minDifficulty) {
@@ -163,10 +165,22 @@ public class ConstrainedDijkstra {
         double arcSec;
         double arcConf;
         double arcDiff;
-
+        
+        if(type != arc.getType_route() && arc .getType_route() != 2) {
+        	return false;
+        }
+        
+        if(type == 0 && arc.getType_Pieton() != access && arc.getType_Pieton() != 4) {
+        	return false;
+        }
+        
+        if(type == 1 && arc.getType_Velo() != 1) {
+        	return false;
+        }
+        
         switch (type) {
             case 0:
-                arcSec = arc.getRisquePieton();
+            	arcSec = arc.getRisquePieton();
                 arcConf = arc.getConfortPieton();
                 arcDiff = arc.getDiffPieton();
                 break;

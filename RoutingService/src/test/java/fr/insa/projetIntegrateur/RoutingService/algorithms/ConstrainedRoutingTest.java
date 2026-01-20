@@ -85,14 +85,16 @@ public class ConstrainedRoutingTest {
             from, 
             to, 
             length, 
-            "test_road", 
+            2,
+            4,
+            1,
             ++idCounter, // Generate ID
             security,    // risquePieton
             0.0,
             comfort,     // confortPieton
             0.0,
-            0.0,
-            diff         // diffPieton
+            diff, 
+            0.0        // diffPieton
         );
         graph.ajouterArc(a);
     }
@@ -101,7 +103,7 @@ public class ConstrainedRoutingTest {
     void testDijkstra_BasicShortestPath() {
         ConstrainedDijkstra algo = new ConstrainedDijkstra();
         // Req 0.5: All arcs (0.6, 0.9, 0.95) are >= 0.45. All are valid.
-        Reponse path = algo.shortestPath(graph, 1, 4,2, 0.5, 0.5, 0.5);
+        Reponse path = algo.shortestPath(graph, 1, 4,0,4, 0.5, 0.5, 0.5);
 
         assertFalse(path.getList().isEmpty(), "Dijkstra should find a valid path");
         assertFalse(path.isProfil_change(),"Constraints should NOT be relaxed for easy path");
@@ -113,7 +115,7 @@ public class ConstrainedRoutingTest {
     @Test
     void testAstar_BasicShortestPath() {
         ConstrainedAstar algo = new ConstrainedAstar();
-        Reponse path = algo.shortestPath(graph, 1, 4,2, 0.5, 0.5, 0.5);
+        Reponse path = algo.shortestPath(graph, 1, 4,0,4, 0.5, 0.5, 0.5);
 
         assertFalse(path.getList().isEmpty(), "A* should find a valid path");
         assertFalse(path.isProfil_change(),"Constraints should NOT be relaxed for easy path");
@@ -130,7 +132,7 @@ public class ConstrainedRoutingTest {
         // Algorithm visits 1->2 first. Finds 2->3 blocked.
         // It RELAXES constraints at Node 2. 2->3 becomes valid.
         // It finds path 1->2->3->4 (Total 450).
-        Reponse path = algo.shortestPath(graph, 1, 4, 2,0.9, 0.5, 0.5);
+        Reponse path = algo.shortestPath(graph, 1, 4, 0,4,0.9, 0.5, 0.5);
 
         assertFalse(path.getList().isEmpty());
         // Should NOT relax because 1->4 is a valid alternative path that meets criteria
@@ -144,7 +146,7 @@ public class ConstrainedRoutingTest {
     @Test
     void testAstar_WithHighSecurity_TriggersRelaxation() {
         ConstrainedAstar algo = new ConstrainedAstar();
-        Reponse result = algo.shortestPath(graph, 1, 4, 2, 0.9, 0.5, 0.5);
+        Reponse result = algo.shortestPath(graph, 1, 4, 0,4, 0.9, 0.5, 0.5);
 
         assertFalse(result.getList().isEmpty());
         // Same logic as Dijkstra
@@ -160,7 +162,7 @@ public class ConstrainedRoutingTest {
         addArc(n4, n5, 50, 0.2, 0.5, 0.5); // Very unsafe link, only way to 5
 
         ConstrainedDijkstra algo = new ConstrainedDijkstra();
-        Reponse result = algo.shortestPath(graph, 1, 5, 2, 0.8, 0.5, 0.5);
+        Reponse result = algo.shortestPath(graph, 1, 5, 0,4, 0.8, 0.5, 0.5);
 
         assertFalse(result.getList().isEmpty(), "Path should be found via relaxation");
         assertTrue(result.isProfil_change(), "Constraints MUST have been relaxed to cross the unsafe arc");
@@ -176,7 +178,7 @@ public class ConstrainedRoutingTest {
         addArc(n4, n5, 50, 0.2, 0.5, 0.5);
 
         ConstrainedAstar algo = new ConstrainedAstar();
-        Reponse result = algo.shortestPath(graph, 1, 5, 2, 0.8, 0.5, 0.5);
+        Reponse result = algo.shortestPath(graph, 1, 5, 0,4, 0.8, 0.5, 0.5);
 
         assertFalse(result.getList().isEmpty(), "A* should find path via relaxation");
         assertTrue(result.isProfil_change(), "Constraints MUST have been relaxed");
@@ -189,8 +191,8 @@ public class ConstrainedRoutingTest {
         ConstrainedAstar astar = new ConstrainedAstar();
         ConstrainedDijkstra dijkstra = new ConstrainedDijkstra();
 
-        List<Noeud> pathA = astar.shortestPath(graph, 1, 4,2, 0.6, 0.6, 0.6).getList();
-        List<Noeud> pathD = dijkstra.shortestPath(graph, 1, 4,2, 0.6, 0.6, 0.6).getList();
+        List<Noeud> pathA = astar.shortestPath(graph, 1, 4,0,4, 0.6, 0.6, 0.6).getList();
+        List<Noeud> pathD = dijkstra.shortestPath(graph, 1, 4,0,4, 0.6, 0.6, 0.6).getList();
 
         double lenA = computePathLength(graph,pathA);
         double lenD = computePathLength(graph,pathD);

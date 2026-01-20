@@ -5,8 +5,10 @@ import fr.insa.projetIntegrateur.RoutingService.model.Noeud;
 import fr.insa.projetIntegrateur.RoutingService.model.Reponse;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import fr.insa.projetIntegrateur.RoutingService.model.Arc;
 import fr.insa.projetIntegrateur.RoutingService.utils.GeoJsonLoader;
@@ -22,10 +24,14 @@ import java.util.List;
 @Service
 public class PathService {
 	    private Graph graphe;
-	    
+	    private RestTemplate rest;
+	    String updateUrl = "http://DatabaseService/api/route/Database/update" +
+	             "?latA={latA}&lonA={lonA}&latB={latB}&lonB={lonB}&typeVoie={typeVoie}";
+
 	    public PathService() throws Exception {
 //	        this.graphe = new GeoJsonLoader().charger("toulouse_graph_nodes_edges_area_Toulouse_2025-11-27.geojson");
 	    	this.graphe = PostgreLoader.loadMap();
+	    	this.rest = new RestTemplate();
 	        if (graphe.getNombreNoeuds() > 0 && graphe.getNombreArcs() > 0) {
 	            System.out.println("✅ Graph loaded successfully!");
 	            System.out.printf("Nodes: %d, Arcs: %d%n", graphe.getNombreNoeuds(), graphe.getNombreArcs());
@@ -35,23 +41,47 @@ public class PathService {
 	        }
 	    }
 
-	    public Reponse calculerDijkstra(long start, long end,int type) {
-	        return new Dijkstra().shortestPath(graphe, start, end,type);
+	    public Reponse calculerDijkstra(long start, long end,int type,int access) {
+	        return new Dijkstra().shortestPath(graphe, start, end,type,access);
 	    }
 
 
-	    public Reponse calculerAstar(long start, long end,int type) {
-	        return new Astar().shortestPath(graphe, start, end,type);
+	    public Reponse calculerAstar(long start, long end,int type,int access) {
+	        return new Astar().shortestPath(graphe, start, end,type,access);
 	    }
 
-		public Reponse calculerCheminFiltre(long start, long end,int type, double sec, double conf, double diff) {
+		public Reponse calculerCheminFiltre(long start, long end,int type, int access,double sec, double conf, double diff) {
+			Noeud depart = graphe.getNoeud(start);
+			Noeud destination = graphe.getNoeud(end);
+			String updateMessage = rest.postForObject(updateUrl, null, String.class,
+					Map.of(
+				            "latA", depart.getLat(),
+				            "lonA", depart.getLon(),
+				            "latB", destination.getLat(),
+				            "lonB", destination.getLon(),
+				            "typeVoie", type
+				        )
+			);
+			System.out.println(updateMessage);
 			ConstrainedDijkstra algo = new ConstrainedDijkstra();
-			return algo.shortestPath(graphe, start, end, type,sec, conf, diff);
+			return algo.shortestPath(graphe, start, end, type, access, sec, conf, diff);
 		}
 
-        public Reponse calculerCheminFiltreAstar(long start, long end,int type,double sec, double conf, double diff) {
-            	ConstrainedAstar algoAstar = new ConstrainedAstar();
-            	return algoAstar.shortestPath(graphe, start, end, type, sec, conf, diff);
+        public Reponse calculerCheminFiltreAstar(long start, long end,int type,int access,double sec, double conf, double diff) {
+        	Noeud depart = graphe.getNoeud(start);
+			Noeud destination = graphe.getNoeud(end);
+			String updateMessage = rest.postForObject(updateUrl, null, String.class,
+					Map.of(
+				            "latA", depart.getLat(),
+				            "lonA", depart.getLon(),
+				            "latB", destination.getLat(),
+				            "lonB", destination.getLon(),
+				            "typeVoie", type
+				        )
+			);
+			System.out.println(updateMessage);	
+        	ConstrainedAstar algoAstar = new ConstrainedAstar();
+            return algoAstar.shortestPath(graphe, start, end, type, access,sec, conf, diff);
         }
     }
 

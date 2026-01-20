@@ -18,101 +18,78 @@ public class PostgreUpdate {
 	    private static final int BATCH_SIZE = 5000;
 
 	    // Only update the edges exist
-	    private static final String UPDATE_ARC_SQL =
-	            "UPDATE routing_arc SET " +
-	            "  risque_pieton=?, risque_velo=?, " +
-	            "  diff_pieton=?, diff_velo=?, " +
-	            "  confort_pieton=?, confort_velo=?, " +
-	            "  type_voie=? " +
-	            "WHERE osm_way_id=? AND from_node=? AND to_node=?";
+	    private static final String UPDATE_PIETON_SQL =
+	    	    "UPDATE routing_arc SET " +
+	    	    "  risque_pieton=?, diff_pieton=?, confort_pieton=?, type_voie=? " +
+	    	    "WHERE osm_way_id=? AND from_node=? AND to_node=?";
+
+	    private static final String UPDATE_VELO_SQL =
+	    	    "UPDATE routing_arc SET " +
+	    	    "  risque_velo=?, diff_velo=?, confort_velo=?, type_voie=? " +
+	    	    "WHERE osm_way_id=? AND from_node=? AND to_node=?";
 
 	    private PostgreUpdate() {}
 
 	    /** update entry：transfer GeoJSON stream */
-	    public static UpdateReport updateFromGeoJson(InputStream geoJsonStream) throws Exception {
-	        if (geoJsonStream == null) {
-	            throw new IllegalArgumentException("geoJsonStream is null");
-	        }
+	    public static UpdateReport updateFromJson(
+	            InputStream jsonStream,
+	            int mode
+	    ) throws Exception {
 
 	        ObjectMapper mapper = new ObjectMapper();
 	        JsonFactory factory = mapper.getFactory();
 
-	        long parsed = 0;
-	        long queued = 0;
-	        long skippedInvalid = 0;
-
-	        long updatedRows = 0;
-	        long notFound = 0;        
+	        long parsed = 0, queued = 0, skipped = 0, updated = 0, notFound = 0;
 
 	        try (Connection conn = DriverManager.getConnection(JDBC_URL, DB_LOGIN, DB_PASS)) {
 	            conn.setAutoCommit(false);
 
-	            try (PreparedStatement ps = conn.prepareStatement(UPDATE_ARC_SQL);
-	                 JsonParser parser = factory.createParser(geoJsonStream)) {
+	            String sql = (mode == 0) ? UPDATE_PIETON_SQL : UPDATE_VELO_SQL;
 
-	                moveToFeaturesArray(parser);
+	            try (PreparedStatement ps = conn.prepareStatement(sql);
+	                 JsonParser parser = factory.createParser(jsonStream)) {
+
+	                moveToItemsArray(parser); 
 
 	                int batch = 0;
 
 	                while (parser.nextToken() != JsonToken.END_ARRAY) {
-	                    JsonNode feature = mapper.readTree(parser);
-	                    if (feature == null || !"Feature".equals(feature.path("type").asText())) continue;
-
-	                    JsonNode geom = feature.get("geometry");
-	                    JsonNode props = feature.get("properties");
-	                    if (geom == null || props == null) continue;
+	                    JsonNode node = mapper.readTree(parser);
+	                    if (node == null) continue;
 	                    parsed++;
 
-	                    long wayId = props.path("osm_way_id").asLong(0);
-	                    long fromNode = props.path("from_node").asLong(0);
-	                    long toNode = props.path("to_node").asLong(0);
+	                    Double wayId   = getDouble(node, "osm_way_id", "osmWayId");
+	                    Double fromNode= getDouble(node, "from_node", "fromNode");
+	                    Double toNode  = getDouble(node, "to_node", "toNode");
 
-	                    Double risqueP = getDouble(props, "risque_pieton", "risquePieton");
-	                    Double risqueV = getDouble(props, "risque_velo", "risqueVelo");
-	                    Double diffP   = getDouble(props, "diff_pieton", "diffPieton");
-	                    Double diffV   = getDouble(props, "diff_velo", "diffVelo");
-	                    Double confP   = getDouble(props, "confort_pieton", "confortPieton");
-	                    Double confV   = getDouble(props, "confort_velo", "confortVelo");
-	                    Integer typeVoie = getInt(props, "type_voie", "typeVoie");
+	                    Double risque = getDouble(node, "risque_pieton", "risque_velo");
+	                    Double diff   = getDouble(node, "diff_pieton", "diff_velo");
+	                    Double conf   = getDouble(node, "confort_pieton", "confort_velo");
+	                    Integer type  = getInt(node, "access_pieton", "access_velo");
 
-	                    if (wayId == 0 || fromNode == 0 || toNode == 0 ||
-	                        risqueP == null || risqueV == null || diffP == null || diffV == null ||
-	                        confP == null || confV == null || typeVoie == null) {
-	                        skippedInvalid++;
+	                    if (wayId==0 || fromNode==0 || toNode==0 ||
+	                        risque==null || diff==null || conf==null || type==null) {
+	                        skipped++;
 	                        continue;
 	                    }
 
-	                    if (!in01(risqueP) || !in01(risqueV) || !in01(diffP) || !in01(diffV) || !in01(confP) || !in01(confV)) {
-	                        skippedInvalid++;
-	                        continue;
-	                    }
-	                    if (!(typeVoie == 0 || typeVoie == 1 || typeVoie == 2)) {
-	                        skippedInvalid++;
-	                        continue;
-	                    }
-
-	                    // bind
-	                    ps.setDouble(1, risqueP);
-	                    ps.setDouble(2, risqueV);
-	                    ps.setDouble(3, diffP);
-	                    ps.setDouble(4, diffV);
-	                    ps.setDouble(5, confP);
-	                    ps.setDouble(6, confV);
-	                    ps.setInt(7, typeVoie);
-
-	                    ps.setLong(8, wayId);
-	                    ps.setLong(9, fromNode);
-	                    ps.setLong(10, toNode);
+	                    ps.setDouble(1, risque);
+	                    ps.setDouble(2, diff);
+	                    ps.setDouble(3, conf);
+	                    ps.setInt(4, type);
+	                    ps.setDouble(5, wayId);
+	                    ps.setDouble(6, fromNode);
+	                    ps.setDouble(7, toNode);
 
 	                    ps.addBatch();
 	                    queued++;
 	                    batch++;
 
 	                    if (batch >= BATCH_SIZE) {
-	                        long[] res = executeAndCount(ps);
-	                        for (long r : res) {
-	                            if (r == 0) notFound++;
-	                            else updatedRows += r;
+	                        int[] r = ps.executeBatch();
+	                        for (int x : r) {
+	                            if (x == 0) notFound++;
+	                            else updated++;
 	                        }
 	                        conn.commit();
 	                        batch = 0;
@@ -120,51 +97,31 @@ public class PostgreUpdate {
 	                }
 
 	                if (batch > 0) {
-	                    long[] res = executeAndCount(ps);
-	                    for (long r : res) {
-	                        if (r == 0) notFound++;
-	                        else updatedRows += r;
+	                    int[] r = ps.executeBatch();
+	                    for (int x : r) {
+	                        if (x == 0) notFound++;
+	                        else updated++;
 	                    }
 	                    conn.commit();
 	                }
 	            }
 	        }
 
-	        return new UpdateReport(parsed, queued, skippedInvalid, updatedRows, notFound);
+	        return new UpdateReport(parsed, queued, skipped, updated, notFound);
 	    }
 
-	    private static long[] executeAndCount(PreparedStatement ps) throws SQLException {
-	        int[] r = ps.executeBatch();
-	        // JDBC: r[i] can be 0,1, or Statement.SUCCESS_NO_INFO(-2)
-	        long[] out = new long[r.length];
-	        for (int i = 0; i < r.length; i++) {
-	            if (r[i] == Statement.SUCCESS_NO_INFO) out[i] = 1; 
-	            else if (r[i] == Statement.EXECUTE_FAILED) out[i] = 0;
-	            else out[i] = r[i];
+
+
+	    private static void moveToItemsArray(JsonParser parser) throws Exception {
+	        JsonToken first = parser.nextToken();
+	        if (first == null) {
+	            throw new IllegalArgumentException("Empty JSON");
 	        }
-	        return out;
-	    }
-
-	    private static void moveToFeaturesArray(JsonParser parser) throws Exception {
-	        JsonToken tok = parser.nextToken();
-	        if (tok == null) throw new IllegalArgumentException("Empty JSON");
-
-	        while (parser.nextToken() != null) {
-	            if (parser.currentToken() == JsonToken.FIELD_NAME && "features".equals(parser.getCurrentName())) {
-	                parser.nextToken();
-	                if (parser.currentToken() != JsonToken.START_ARRAY) {
-	                    throw new IllegalArgumentException("'features' is not an array");
-	                }
-	                return;
-	            }
+	        if (first != JsonToken.START_ARRAY) {
+	            throw new IllegalArgumentException("Expected JSON array at root, but got: " + first);
 	        }
-	        throw new IllegalArgumentException("No 'features' array found");
 	    }
-
-	    private static boolean in01(double x) {
-	        return Double.isFinite(x) && x >= 0.0 && x <= 1.0;
-	    }
-
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
 	    private static Double getDouble(JsonNode props, String snake, String camel) {
 	        JsonNode n = props.get(snake);
 	        if (n == null) n = props.get(camel);

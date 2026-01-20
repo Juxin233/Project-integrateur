@@ -52,8 +52,7 @@ public final class PostgreLoader {
         // 2) Load all arcs
         final String SQL_ARCS =
                 "SELECT osm_way_id, from_node, to_node, length_m, " +
-                "       risque_pieton, risque_velo, confort_pieton, confort_velo, diff_velo, diff_pieton, " +
-                "       type_voie " +
+                "       type_voie, access_pieton, access_velo, risque_pieton, risque_velo, confort_pieton, confort_velo, diff_velo, diff_pieton " +
                 "FROM routing_arc";
 
         try (PreparedStatement ps = conn.prepareStatement(SQL_ARCS)) {
@@ -80,11 +79,12 @@ public final class PostgreLoader {
                     double confortV = rs.getDouble("confort_velo");
                     double diffV = rs.getDouble("diff_velo");
                     double diffP = rs.getDouble("diff_pieton");
-
+                    
                     int typeVoie = rs.getInt("type_voie");
-
-                    Arc arc = new Arc(from, to, length, null, arcId,
-                            risqueP, risqueV, confortP, confortV, diffV, diffP);
+                    int accessPieton = rs.getInt("access_pieton");
+                    int accessVelo = rs.getInt("access_velo");
+                    Arc arc = new Arc(from, to, length, typeVoie,accessPieton,accessVelo, arcId,
+                            risqueP, risqueV, confortP, confortV, diffP, diffV);
                     arc.setType_route(typeVoie);
                     g.ajouterArc(arc);
                 }

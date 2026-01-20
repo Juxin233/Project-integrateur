@@ -47,6 +47,7 @@ public class ConstrainedAstar {
                                     long startId,
                                     long goalId,
                                     int type,
+                                    int access,
                                     double minSecurity,
                                     double minComfort,
                                     double minDifficulty) {
@@ -116,7 +117,7 @@ public class ConstrainedAstar {
                     }
 
                     // Check using global current vector
-                    if (isArcValid(arc, type, this.curSec, this.curConf, this.curDiff)) {
+                    if (isArcValid(arc, type, access,this.curSec, this.curConf, this.curDiff)) {
                         hasValidArc = true;
                         break;
                     }
@@ -142,7 +143,7 @@ public class ConstrainedAstar {
                 if (T != type && T != 2) continue;
                 
                 // Use global current vector
-                if (!isArcValid(arc, type, this.curSec, this.curConf, this.curDiff)) {
+                if (!isArcValid(arc, type, access,this.curSec, this.curConf, this.curDiff)) {
                     continue;
                 }
 
@@ -187,13 +188,26 @@ public class ConstrainedAstar {
      *
      * Also enforces that attributes are finite and within [0, 1].
      */
-    private boolean isArcValid(Arc arc, int type,double minSecurity, double minComfort, double minDifficulty) {
+    private boolean isArcValid(Arc arc, int type,int access, double minSecurity, double minComfort, double minDifficulty) {
         double thresSec = clamp01(minSecurity - TOL);
         double thresConf = clamp01(minComfort - TOL);
         double thresDiff = clamp01(minDifficulty - TOL);
         double arcSec = 0.0;
         double arcConf = 0.0;
         double arcDiff = 0.0;
+        
+        // Si le chemin n'est pas pour le type voulu, retourner false
+        if(type != arc.getType_route() && arc .getType_route() != 2) {
+        	return false;
+        }
+        // Si le'accessiblité ne correspond pas au type voulu, retourner false
+        if(type == 0 && arc.getType_Pieton() != access && arc.getType_Pieton() != 4) {
+        	return false;
+        }
+        
+        if(type == 1 && arc.getType_Velo() != 1) {
+        	return false;
+        }
         
         switch (type) {
 	        case 0:

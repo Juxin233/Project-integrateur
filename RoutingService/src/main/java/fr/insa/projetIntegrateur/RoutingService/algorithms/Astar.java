@@ -10,7 +10,7 @@ import java.util.*;
 
 public class Astar {
 
-    public Reponse shortestPath(Graph graphe, long startId, long goalId, int type) {
+    public Reponse shortestPath(Graph graphe, long startId, long goalId, int type,int access) {
 
         Noeud start = graphe.getNoeud(startId);
         Noeud goal = graphe.getNoeud(goalId);

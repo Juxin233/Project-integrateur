@@ -28,16 +28,15 @@ public class GeoJsonToPostgresImporter {
 
     private static final String UPSERT_ARC_SQL =
             "INSERT INTO routing_arc(" +
-                    "osm_way_id, from_node, to_node, length_m, " +
-                    "risque_pieton, risque_velo, diff_pieton, diff_velo, confort_pieton, confort_velo, " +
-                    "type_voie" +
-            ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) " +
+                    "osm_way_id, from_node, to_node, length_m, type_voie, access_pieton, access_velo," +
+                    "risque_pieton, risque_velo, diff_pieton, diff_velo, confort_pieton, confort_velo " +
+            ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) " +
             "ON CONFLICT (osm_way_id,from_node,to_node) DO UPDATE SET " +
                     "from_node=EXCLUDED.from_node, to_node=EXCLUDED.to_node, length_m=EXCLUDED.length_m, " +
+                    "type_voie=EXCLUDED.type_voie, access_pieton=EXCLUDED.access_pieton, access_velo=EXCLUDED.access_velo,"+
                     "risque_pieton=EXCLUDED.risque_pieton, risque_velo=EXCLUDED.risque_velo, " +
                     "diff_pieton=EXCLUDED.diff_pieton, diff_velo=EXCLUDED.diff_velo, " +
-                    "confort_pieton=EXCLUDED.confort_pieton, confort_velo=EXCLUDED.confort_velo, " +
-                    "type_voie=EXCLUDED.type_voie";
+                    "confort_pieton=EXCLUDED.confort_pieton, confort_velo=EXCLUDED.confort_velo " ;
 
     public static void main(String[] args) throws Exception {
 
@@ -169,13 +168,15 @@ public class GeoJsonToPostgresImporter {
                         psArc.setLong(2, fromNode);
                         psArc.setLong(3, toNode);
                         psArc.setDouble(4, lengthM);
-                        psArc.setDouble(5, risqueP);
-                        psArc.setDouble(6, risqueV);
-                        psArc.setDouble(7, diffP);
-                        psArc.setDouble(8, diffV);
-                        psArc.setDouble(9, confP);
-                        psArc.setDouble(10, confV);
-                        psArc.setInt(11, typeVoie);
+                        psArc.setInt(5, 2);
+                        psArc.setInt(6, 4);
+                        psArc.setInt(7, 1);
+                        psArc.setDouble(8, risqueP);
+                        psArc.setDouble(9, risqueV);
+                        psArc.setDouble(10, diffP);
+                        psArc.setDouble(11, diffV);
+                        psArc.setDouble(12, confP);
+                        psArc.setDouble(13, confV);
                         
                         switch (onewayVal) {
                         	case "yes" -> {   

@@ -31,7 +31,7 @@ public class RoutingController {
             @RequestParam long start,
             @RequestParam long end) {
 
-        return service.calculerDijkstra(start, end,2);
+        return service.calculerDijkstra(start, end,2,2);
     }
     // Existing simple Dijkstra
     @GetMapping("/astar")
@@ -39,7 +39,7 @@ public class RoutingController {
             @RequestParam long start,
             @RequestParam long end) {
 
-        return service.calculerAstar(start, end,2);
+        return service.calculerAstar(start, end,2,2);
     }
     // NEW: Constrained Dijkstra
     // Example call: /api/route/constrained?start=1&end=10&sec=0.5&conf=0.8&diff=0.2
@@ -47,11 +47,11 @@ public class RoutingController {
     public Reponse routeConstrained(
             @RequestParam long start,
             @RequestParam long end,
-            @RequestParam(defaultValue = "0") double sec,
-            @RequestParam(defaultValue = "0") double conf,
-            @RequestParam(defaultValue = "0") double diff) {
+            @RequestParam(defaultValue = "0.0") double sec,
+            @RequestParam(defaultValue = "0.0") double conf,
+            @RequestParam(defaultValue = "0.0") double diff) {
 
-        Reponse path = service.calculerCheminFiltre(start, end,2, sec, conf, diff);
+        Reponse path = service.calculerCheminFiltre(start, end,2, 2,sec, conf, diff);
 
         return path;
     }
@@ -65,7 +65,7 @@ public class RoutingController {
             @RequestParam(defaultValue = "0") double conf,
             @RequestParam(defaultValue = "0") double diff) {
 
-        Reponse path = service.calculerCheminFiltreAstar(start, end, 2,sec, conf, diff);
+        Reponse path = service.calculerCheminFiltreAstar(start, end, 2,2,sec, conf, diff);
 
         if (path.getList().isEmpty()) {
             // Optional: Handle no path found (e.g., return 404 or empty list)

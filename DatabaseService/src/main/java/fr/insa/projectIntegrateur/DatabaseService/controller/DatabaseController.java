@@ -14,29 +14,25 @@ import fr.insa.projectIntegrateur.DatabaseService.service.DatabaseService;
 @RestController
 @RequestMapping("/api/route/Database")
 public class DatabaseController {
-	private final RestTemplate rest;
-	
+
 	public final DatabaseService service ;
-	private final int DBKey = 123456;
-	public DatabaseController(RestTemplate rest) {
-		this.rest=rest;
+
+	public DatabaseController() {
 		service = new DatabaseService();
 	}
 	
     @GetMapping("/reset")
     public String reset(@RequestParam int key) {
-    	if(key==DBKey) {
-    		service.reset();
-    		return "Database reset successfully";
-    	}else {
-    		return "Authentification failed";
-    	}
+    	return service.reset(key);
     }
     
     @PostMapping("/update")
-    public String update() {
-    	InputStream content= rest.getForObject("address to the sub graph micro service", InputStream.class);
-    	service.update(content);
-    	return "Database update successfully";
+    public String update(@RequestParam double latA,@RequestParam double lonA,@RequestParam double latB,@RequestParam double lonB,@RequestParam int typeVoie) {
+    	try {
+    			service.update(latA, lonA, latB, lonB, typeVoie);
+    			return "Database update successfully";
+    	}catch(Exception e) {
+    		return e.getMessage();
+    	}
     }
 }
