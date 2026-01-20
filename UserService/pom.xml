@@ -57,6 +57,17 @@
 			<artifactId>spring-boot-starter-jdbc</artifactId>
 		</dependency>
 
+		 <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-security</artifactId>
+    </dependency>
+
+    <!-- WEB -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
 		<!-- MySQL Driver -->
         <dependency>
             <groupId>com.mysql</groupId>

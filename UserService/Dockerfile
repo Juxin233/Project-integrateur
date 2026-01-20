@@ -1,15 +1,17 @@
-#base image with the Runtime Environment
-FROM eclipse-temurin:21-jdk-alpine
-
-#working directory inside the container
+# 1) Build
+FROM maven:3.9-eclipse-temurin-21-alpine AS build
 WORKDIR /app
 
-# 3. Copy the compiled JAR file from your target folder to the container
-# (Assuming you've run 'mvn package' or 'gradle build')
-#COPY target/UserService-0.0.1-SNAPSHOT.jar  app.jar
-RUN mvn clean install compile
-# 4. Expose the port your service runs on (e.g., 8080)
-EXPOSE 8080
+COPY pom.xml .
+COPY src ./src
 
-# 5. The command to run your application
+RUN mvn clean install compile
+
+# 2) Runtime
+FROM eclipse-temurin:21-jre-alpine
+WORKDIR /app
+
+COPY --from=build /app/target/*.jar app.jar
+
+EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]

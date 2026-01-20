@@ -8,7 +8,6 @@ services:
     environment:
       - SERVER_PORT=8889
       - SERVER_ADDRESS=0.0.0.0
-     
     networks:
       - appnet
 
@@ -23,7 +22,6 @@ services:
     environment:
       - SERVER_PORT=8761
       - SERVER_ADDRESS=0.0.0.0
-      # Spring Cloud Config (según tu versión puede usar uno u otro)
       - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8889
       - SPRING_CLOUD_CONFIG_URI=http://config-server:8889
     networks:
@@ -35,15 +33,15 @@ services:
     container_name: UserService
     depends_on:
       - config-server
-      - msDiscovery
+      - discovery
     ports:
-      - "8080:8080"
+      - "8082:8080"
     environment:
       - SERVER_PORT=8080
       - SERVER_ADDRESS=0.0.0.0
       - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8889
       - SPRING_CLOUD_CONFIG_URI=http://config-server:8889
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://msDiscovery:8761/eureka
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery:8761/eureka
       - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
     networks:
       - appnet
@@ -54,8 +52,8 @@ services:
     container_name: GatewayService
     depends_on:
       - config-server
-      - msDiscovery
-      - UserService
+      - discovery
+      - userservice
     ports:
       - "8081:8081"
     environment:
@@ -63,7 +61,7 @@ services:
       - SERVER_ADDRESS=0.0.0.0
       - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8889
       - SPRING_CLOUD_CONFIG_URI=http://config-server:8889
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://msDiscovery:8761/eureka
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery:8761/eureka
       - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
     networks:
       - appnet
@@ -73,7 +71,7 @@ services:
       context: ./GUI
     container_name: GUI
     depends_on:
-      - GatewayService
+      - gateway
     ports:
       - "3000:80"
     networks:
