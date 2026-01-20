@@ -78,7 +78,7 @@ public class UserResource {
         return userRepository.getUserCustomProfileById(id);
     }
     
-    @GetMapping("/get/Itineraries/{id}")
+    @GetMapping("/get/itineraries/{id}")
     public List<Itinerary> getItinerariesById(@PathVariable int id) {
         return userRepository.getItinerariesById(id);
     }
@@ -112,51 +112,63 @@ public class UserResource {
     //-------------------------------- PUT METHODS --------------------------------//
     
     @PutMapping("/replace/fName/{id}")
-    public ResponseEntity<String> replaceFirstName(
-            @PathVariable int id, 
-            @RequestBody String firstName) {
-        userRepository.replaceFirstName(id, firstName);
-        return ResponseEntity.ok("First name replaced successfully.");
+    public ResponseEntity<String> replaceFirstName(@PathVariable int id, @RequestBody String firstName) {
+    	int rows = userRepository.replaceFirstName(id, firstName);
+        if (rows > 0) {
+            return ResponseEntity.ok("First name replaced successfully.");
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found.");
+        }
     }
     
     @PutMapping("/replace/lName/{id}")
-    public ResponseEntity<String> replaceLastName(
-            @PathVariable int id, 
-            @RequestBody String lastName) {
-        userRepository.replaceLastName(id, lastName);
-        return ResponseEntity.ok("Last name replaced successfully.");
+    public ResponseEntity<String> replaceLastName(@PathVariable int id, @RequestBody String lastName) {
+        int rows = userRepository.replaceLastName(id, lastName);
+        if (rows > 0) {
+            return ResponseEntity.ok("Last name replaced successfully.");
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found.");
+        }
     }
     
     @PutMapping("/replace/password/{id}")
-    public ResponseEntity<String> replacePassword(
-            @PathVariable int id, 
-            @RequestBody String password) {
-        userRepository.replacePassword(id, password);
-        return ResponseEntity.ok("Password replaced successfully.");
+    public ResponseEntity<String> replacePassword(@PathVariable int id, @RequestBody String password) {
+        int rows = userRepository.replacePassword(id, password);
+        if (rows > 0) {
+            return ResponseEntity.ok("Password replaced successfully.");
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found.");
+        }
     }
     
     @PutMapping("/replace/email/{id}")
-    public ResponseEntity<String> replaceEmail(
-            @PathVariable int id, 
-            @RequestBody String email) {
-        userRepository.replaceEmail(id, email);
-        return ResponseEntity.ok("Email replaced successfully.");
+    public ResponseEntity<String> replaceEmail(@PathVariable int id, @RequestBody String email) {
+        int rows = userRepository.replaceEmail(id, email);
+        if (rows > 0) {
+            return ResponseEntity.ok("Email replaced successfully.");
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found.");
+        }
     }
     
     @PutMapping("/replace/profileDefault/{id}")
-    public ResponseEntity<String> replaceProfileDefault(
-            @PathVariable int id, 
-            @RequestBody int idProfileDefault) {
-        userRepository.replaceProfileDefault(id, idProfileDefault);
-        return ResponseEntity.ok("Default user profile replaced successfully.");
+    public ResponseEntity<String> replaceProfileDefault(@PathVariable int id, @RequestBody int idProfileDefault) {
+        int rows = userRepository.replaceProfileDefault(id, idProfileDefault);
+        if (rows > 0) {
+            return ResponseEntity.ok("Default user profile replaced successfully.");
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found.");
+        }
     }
     
     @PutMapping("/replace/customProfile/{id}")
-    public ResponseEntity<String> replaceCustomProfile(
-            @PathVariable int id, 
-            @RequestBody String customProfile) {
-        userRepository.replaceCustomProfile(id, customProfile);
-        return ResponseEntity.ok("Custom user profile replaced successfully.");
+    public ResponseEntity<String> replaceCustomProfile(@PathVariable int id, @RequestBody String customProfile) {
+        int rows = userRepository.replaceCustomProfile(id, customProfile);
+        if (rows > 0) {
+            return ResponseEntity.ok("Custom user profile replaced successfully.");
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found.");
+        }
     }
     
     //-------------------------------- DELETE METHODS --------------------------------//
