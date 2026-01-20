@@ -50,7 +50,7 @@ public class DatabaseService {
 	    		throw new IllegalStateException("Empty response body from sub graph service");
 	    	}
 	    	try {
-	    		InputStream contentPieton = ByteArrayInputStream(bodyPieton);
+	    		InputStream contentPieton = new ByteArrayInputStream(bodyPieton);
 				PostgreUpdate.updateFromJson(contentPieton,0);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -68,7 +68,7 @@ public class DatabaseService {
 	    		throw new IllegalStateException("Empty response body from sub graph service");
 	    	}
 	    	try {
-	    		InputStream contentPieton = ByteArrayInputStream(bodyVelo);
+	    		InputStream contentPieton = new ByteArrayInputStream(bodyVelo);
 				PostgreUpdate.updateFromJson(contentPieton,1);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -86,7 +86,7 @@ public class DatabaseService {
 	    		throw new IllegalStateException("Empty response body from sub graph service");
 	    	}
 	    	try {
-	    		InputStream contentPieton = ByteArrayInputStream(body);
+	    		InputStream contentPieton = new ByteArrayInputStream(body);
 				PostgreUpdate.updateFromJson(contentPieton,0);
 			} catch (Exception e) {
 				e.printStackTrace();
