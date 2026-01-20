@@ -1,5 +1,7 @@
 import axios from "axios";
 
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  // This tells axios to start every request with "/api"
+  // Example: api.get("/route/nearest") becomes "/api/route/nearest"
+  baseURL: "/api",
 });
