@@ -33,7 +33,8 @@ public class RoutingController {
 
         return service.calculerDijkstra(start, end,2,2);
     }
-    // Existing simple Dijkstra
+
+    // Existing simple A*
     @GetMapping("/astar")
     public Reponse astar(
             @RequestParam long start,
@@ -57,6 +58,7 @@ public class RoutingController {
     }
 
     // NEW: Constrained A*
+    // Returns PathResult (path + relaxed boolean)
     @GetMapping("/constrained/astar")
     public Reponse routeConstrainedAstar(
             @RequestParam long start,
@@ -72,5 +74,11 @@ public class RoutingController {
         }
 
         return path;
+    }
+
+    // --- NEW ENDPOINT ---
+    @GetMapping("/nearest")
+    public long getNearestNode(@RequestParam double lat, @RequestParam double lon) {
+        return service.findNearestNode(lat, lon);
     }
 }

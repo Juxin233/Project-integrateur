@@ -36,7 +36,7 @@ public class PathService {
 	            System.out.println("✅ Graph loaded successfully!");
 	            System.out.printf("Nodes: %d, Arcs: %d%n", graphe.getNombreNoeuds(), graphe.getNombreArcs());
 	        } else {
-	            System.out.printf("⚠️ Graph loaded, but appears empty (Nodes: %d, Arcs: %d). Check GeoJSON content.%n", 
+	            System.out.printf("⚠️ Graph loaded, but appears empty (Nodes: %d, Arcs: %d). Check GeoJSON content.%n",
 	                              graphe.getNombreNoeuds(), graphe.getNombreArcs());
 	        }
 	    }
@@ -79,10 +79,15 @@ public class PathService {
 				            "typeVoie", type
 				        )
 			);
-			System.out.println(updateMessage);	
+			System.out.println(updateMessage);
         	ConstrainedAstar algoAstar = new ConstrainedAstar();
             return algoAstar.shortestPath(graphe, start, end, type, access,sec, conf, diff);
         }
-    }
 
-	
+    // --- NEW METHOD ---
+    public long findNearestNode(double lat, double lon) {
+        return graphe.findNearestNode(lat, lon);
+    }
+}
+
+
