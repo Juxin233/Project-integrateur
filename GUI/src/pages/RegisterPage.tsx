@@ -15,7 +15,7 @@ type RegisterFormData = {
 
 export default function RegisterPage() {
   const navigate = useNavigate();
-  const [serverError, setServerError] = useState("");
+  const [, setServerError] = useState("");
 
   const {
     register,
@@ -67,7 +67,7 @@ export default function RegisterPage() {
               <input
                 type="text"
                 className="w-full rounded-md border border-slate-300 text-sm px-3 py-2 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                {...register("FirstName", { required: true })}
+                {...register("firstName", { required: true })}
               />
             </div>
             <div>
@@ -75,7 +75,7 @@ export default function RegisterPage() {
               <input
                 type="text"
                 className="w-full rounded-md border border-slate-300 text-sm px-3 py-2 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                {...register("LastName", { required: true })}
+                {...register("lastName", { required: true })}
               />
             </div>
           </div>

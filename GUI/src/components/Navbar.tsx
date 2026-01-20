@@ -1,13 +1,11 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { clearSession } from "../api/session";
 
 export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const handleSignOut = () => {
-    // TODO: clear auth token / context
-    navigate("/");
-  };
+  
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -28,7 +26,7 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-slate-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Logo */}
-        <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate("/profile")}>
+        <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate("/infoUser")}>
           <div className="w-8 h-8 bg-blue-600 rounded-md flex items-center justify-center text-white font-bold text-sm">
             MA
           </div>
@@ -40,12 +38,15 @@ export default function Navbar() {
         {/* Navigation */}
         <nav className="hidden md:flex items-center gap-1">
           <NavItem to="/itinerary" label="Itinerary" />
-          <NavItem to="/profile" label="Profile" />
+          <NavItem to="/infoUser" label="My account" />
           
           <div className="h-4 w-px bg-slate-200 mx-2" />
 
           <button
-            onClick={handleSignOut}
+            onClick={() => {
+  clearSession();
+  navigate("/", { replace: true });
+}}
             className="text-sm font-medium text-slate-500 hover:text-red-600 px-3 py-2 transition-colors"
           >
             Sign out

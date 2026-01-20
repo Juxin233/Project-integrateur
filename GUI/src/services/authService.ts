@@ -4,10 +4,10 @@ import { type User } from "../types/userTypes";
 export async function login(
   email: string,
   password: string
-): Promise<User> {
+): Promise<User|null> {
   const user = await loginApi(email, password);
   localStorage.setItem("user", JSON.stringify(user));
-  return user;
+  return user ;
 }
 
 export function logout() {
