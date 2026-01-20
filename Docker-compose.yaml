@@ -1,0 +1,84 @@
+services:
+  config-server:
+    build:
+      context: ./ConfigServer
+    container_name: config-server
+    ports:
+      - "8889:8889"
+    environment:
+      - SERVER_PORT=8889
+      - SERVER_ADDRESS=0.0.0.0
+     
+    networks:
+      - appnet
+
+  discovery:
+    build:
+      context: ./msDiscovery
+    container_name: msDiscovery
+    depends_on:
+      - config-server
+    ports:
+      - "8761:8761"
+    environment:
+      - SERVER_PORT=8761
+      - SERVER_ADDRESS=0.0.0.0
+      # Spring Cloud Config (según tu versión puede usar uno u otro)
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8889
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8889
+    networks:
+      - appnet
+
+  userservice:
+    build:
+      context: ./UserService
+    container_name: UserService
+    depends_on:
+      - config-server
+      - msDiscovery
+    ports:
+      - "8080:8080"
+    environment:
+      - SERVER_PORT=8080
+      - SERVER_ADDRESS=0.0.0.0
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8889
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8889
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://msDiscovery:8761/eureka
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+    networks:
+      - appnet
+
+  gateway:
+    build:
+      context: ./GatewayService
+    container_name: GatewayService
+    depends_on:
+      - config-server
+      - msDiscovery
+      - UserService
+    ports:
+      - "8081:8081"
+    environment:
+      - SERVER_PORT=8081
+      - SERVER_ADDRESS=0.0.0.0
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8889
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8889
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://msDiscovery:8761/eureka
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+    networks:
+      - appnet
+
+  frontend:
+    build:
+      context: ./GUI
+    container_name: GUI
+    depends_on:
+      - GatewayService
+    ports:
+      - "3000:80"
+    networks:
+      - appnet
+
+networks:
+  appnet:
+    driver: bridge
