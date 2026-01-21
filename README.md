@@ -1,2 +1,2 @@
 # Project-integrateur
-A mobility safe and reliable for bycycle and pedestrian
+A mobility safe and reliable for bicycle and pedestrian
