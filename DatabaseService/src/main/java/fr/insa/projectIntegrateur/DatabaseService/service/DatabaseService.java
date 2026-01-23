@@ -35,7 +35,7 @@ public class DatabaseService {
 	}
 	
 	public void update(double latA,double lonA,double latB,double lonB,int typeVoie) {
-		String urlPieton = "http://path/to/subgraph/microservice"+"?lonA={lonA}&latA={latA}&lonB={lonB}&latB={latB}";
+		String urlPieton = "http://192.168.37.125:50002/api/edges/ellipse"+"?lonA={lonA}&latA={latA}&lonB={lonB}&latB={latB}";
 		String urlVelo = "http://path/to/subgraph/microservice"+"?lonA={lonA}&latA={latA}&lonB={lonB}&latB={latB}";
 		switch (typeVoie) {
 		case 0:

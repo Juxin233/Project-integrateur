@@ -1,13 +1,7 @@
 package fr.insa.projetIntegrateur.RoutingService.controller;
 
-import fr.insa.projetIntegrateur.RoutingService.model.Arc;
-import fr.insa.projetIntegrateur.RoutingService.model.Noeud;
 import fr.insa.projetIntegrateur.RoutingService.model.Reponse;
 import fr.insa.projetIntegrateur.RoutingService.service.PathService;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Map;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,7 +12,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/route")
 public class RoutingController {
-
     private final PathService service;
 
     public RoutingController(PathService service) {
@@ -50,9 +43,10 @@ public class RoutingController {
             @RequestParam long end,
             @RequestParam(defaultValue = "0.0") double sec,
             @RequestParam(defaultValue = "0.0") double conf,
-            @RequestParam(defaultValue = "0.0") double diff) {
-
-        Reponse path = service.calculerCheminFiltre(start, end,2, 2,sec, conf, diff);
+            @RequestParam(defaultValue = "0.0") double diff,
+            @RequestParam(defaultValue = "2") int typeVoie,
+            @RequestParam(defaultValue = "2") int access) {
+        Reponse path = service.calculerCheminFiltre(start, end,typeVoie, access,sec, conf, diff);
 
         return path;
     }
@@ -65,9 +59,10 @@ public class RoutingController {
             @RequestParam long end,
             @RequestParam(defaultValue = "0") double sec,
             @RequestParam(defaultValue = "0") double conf,
-            @RequestParam(defaultValue = "0") double diff) {
-
-        Reponse path = service.calculerCheminFiltreAstar(start, end, 2,2,sec, conf, diff);
+            @RequestParam(defaultValue = "0") double diff,
+            @RequestParam(defaultValue = "2") int typeVoie,
+            @RequestParam(defaultValue = "2") int access) {
+        Reponse path = service.calculerCheminFiltreAstar(start, end, typeVoie,access,sec, conf, diff);
 
         if (path.getList().isEmpty()) {
             // Optional: Handle no path found (e.g., return 404 or empty list)

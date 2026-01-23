@@ -26,7 +26,7 @@ public class PathService {
 	    private Graph graphe;
 	    private RestTemplate rest;
 	    String updateUrl = "http://DatabaseService/api/route/Database/update" +
-	             "?latA={latA}&lonA={lonA}&latB={latB}&lonB={lonB}&typeVoie={typeVoie}";
+	             "?lonA={lonA}&latA={latA}&lonB={lonB}&latB={latB}&typeVoie={typeVoie}";
 
 	    public PathService() throws Exception {
 //	        this.graphe = new GeoJsonLoader().charger("toulouse_graph_nodes_edges_area_Toulouse_2025-11-27.geojson");
@@ -55,10 +55,10 @@ public class PathService {
 			Noeud destination = graphe.getNoeud(end);
 			String updateMessage = rest.postForObject(updateUrl, null, String.class,
 					Map.of(
-				            "latA", depart.getLat(),
 				            "lonA", depart.getLon(),
-				            "latB", destination.getLat(),
+				            "latA", depart.getLat(),
 				            "lonB", destination.getLon(),
+				            "latB", destination.getLat(),
 				            "typeVoie", type
 				        )
 			);
@@ -72,10 +72,10 @@ public class PathService {
 			Noeud destination = graphe.getNoeud(end);
 			String updateMessage = rest.postForObject(updateUrl, null, String.class,
 					Map.of(
-				            "latA", depart.getLat(),
 				            "lonA", depart.getLon(),
-				            "latB", destination.getLat(),
+				            "latA", depart.getLat(),
 				            "lonB", destination.getLon(),
+				            "latB", destination.getLat(),
 				            "typeVoie", type
 				        )
 			);
