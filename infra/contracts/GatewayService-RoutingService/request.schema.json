@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "GatewayService-RoutingService/request.schema.json",
+  "title": "RoutingRequest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["start", "end", "algorithm"],
+  "properties": {
+    "start": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Node id (OSM id) of the start node."
+    },
+    "end": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Node id (OSM id) of the end node."
+    },
+    "algorithm": {
+      "type": "string",
+      "enum": ["dijkstra", "astar"],
+      "description": "Routing algorithm to use. Must match an exposed endpoint."
+    },
+    "extensions": {
+      "type": "object",
+      "description": "Optional extra parameters reserved for future versions. Current service may ignore them.",
+      "additionalProperties": true
+    }
+  }
+}

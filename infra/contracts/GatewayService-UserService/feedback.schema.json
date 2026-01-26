@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "GatewayService-UserService/feedback.schema.json",
+  "title": "UserFeedback",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["idUser", "timestamp", "action", "payload"],
+  "properties": {
+    "idUser": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "User id (User.idUser)."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 timestamp when feedback was produced."
+    },
+    "action": {
+      "type": "string",
+      "enum": ["SET_DEFAULT_PROFILE"],
+      "description": "Only supported feedback action with current UserService code."
+    },
+    "payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["idProfileDefault"],
+      "properties": {
+        "idProfileDefault": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2,
+          "description": "Fixed profiles: 0=SPEED, 1=SAFETY, 2=COMFORT (per Profile.getWeights switch)."
+        }
+      }
+    }
+  }
+}
