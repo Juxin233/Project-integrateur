@@ -5,6 +5,7 @@ import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -15,15 +16,16 @@ import org.springframework.web.client.RestTemplate;
 
 import fr.insa.projectIntegrateur.DatabaseService.model.CorridorRequest;
 import fr.insa.projectIntegrateur.DatabaseService.utils.*;
-
+import fr.insa.projectIntegrateur.DatabaseService.config.*;
 
 @Service
 public class DatabaseService {
-	private  RestTemplate rest;
 	private final int DBKey = 123456;
 	
+	private RestTemplate rest;
+	
 	public DatabaseService() {
-		this.rest=new RestTemplate();
+		rest = new RestTemplate();
 	}
 	
 	public String reset(int key) {

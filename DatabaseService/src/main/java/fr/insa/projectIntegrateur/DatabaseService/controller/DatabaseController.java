@@ -14,8 +14,8 @@ public class DatabaseController {
 
 	public final DatabaseService service ;
 
-	public DatabaseController() {
-		service = new DatabaseService();
+	public DatabaseController(DatabaseService service) {
+		this.service = service;
 	}
 	
     @GetMapping("/reset")

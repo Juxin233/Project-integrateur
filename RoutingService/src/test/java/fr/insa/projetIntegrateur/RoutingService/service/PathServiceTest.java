@@ -14,7 +14,7 @@ class PathServiceTest {
 
     @Test
     void testCalculerAStar() throws Exception {
-        PathService service = new PathService();
+        PathService service = new PathService(null);
         long startId = 5561695614L;
         long endId = 13334782210L;
 

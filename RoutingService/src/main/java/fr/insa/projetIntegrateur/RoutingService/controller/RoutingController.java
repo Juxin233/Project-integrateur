@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/route")
 public class RoutingController {
     private final PathService service;
-
+    
     public RoutingController(PathService service) {
         this.service = service;
     }
