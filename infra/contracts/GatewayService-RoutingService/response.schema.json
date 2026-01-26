@@ -1,0 +1,87 @@
+
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "GatewayService-RoutingService/response.schema.json",
+  "title": "RoutingResponse",
+  "type": "array",
+  "description": "Ordered list of arcs composing the computed route.",
+  "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "from_node",
+      "to_node",
+      "longueur",
+      "zone_empruntable"
+    ],
+    "properties": {
+      "from_node": {
+        "type": "integer",
+        "description": "Origin node id of the arc."
+      },
+      "to_node": {
+        "type": "integer",
+        "description": "Destination node id of the arc."
+      },
+      "longueur": {
+        "type": "number",
+        "minimum": 0,
+        "description": "Length of the arc in meters."
+      },
+      "type_voie": {
+        "type": ["string", "null"],
+        "description": "OSM highway type if available."
+      },
+
+      "temps_marche": {
+        "type": "number",
+        "description": "Walking time for this arc."
+      },
+      "risque_pieton": {
+        "type": "number",
+        "description": "Pedestrian risk level."
+      },
+      "risque_meteo": {
+        "type": "number",
+        "description": "Weather-related risk."
+      },
+      "eclairage": {
+        "type": "integer",
+        "description": "Lighting indicator (0/1)."
+      },
+      "chantier": {
+        "type": "integer",
+        "description": "Roadwork indicator (0/1)."
+      },
+      "zone_pietonne": {
+        "type": "integer",
+        "description": "Pedestrian zone indicator."
+      },
+      "zone_empruntable": {
+        "type": "integer",
+        "description": "Whether the arc is usable (1) or not (0)."
+      },
+      "confort_pieton": {
+        "type": "number",
+        "description": "Pedestrian comfort score."
+      },
+
+      "velo_protege": {
+        "type": "number",
+        "description": "Cycling time or protection indicator."
+      },
+      "acces_velo": {
+        "type": "integer",
+        "description": "Bike access / route type."
+      },
+      "risque_velo": {
+        "type": "number",
+        "description": "Cyclist risk level."
+      },
+      "confort_velo": {
+        "type": "number",
+        "description": "Cyclist comfort score."
+      }
+    }
+  }
+}
