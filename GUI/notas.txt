@@ -1,0 +1,7 @@
+ docker compose up --build    para usar en windows o linux
+
+ email: test@test.com
+password: 1234
+
+ 
+ 
