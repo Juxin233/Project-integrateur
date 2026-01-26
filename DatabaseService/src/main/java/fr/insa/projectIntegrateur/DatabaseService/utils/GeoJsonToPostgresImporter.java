@@ -37,7 +37,8 @@ public class GeoJsonToPostgresImporter {
                     "risque_pieton=EXCLUDED.risque_pieton, risque_velo=EXCLUDED.risque_velo, " +
                     "diff_pieton=EXCLUDED.diff_pieton, diff_velo=EXCLUDED.diff_velo, " +
                     "confort_pieton=EXCLUDED.confort_pieton, confort_velo=EXCLUDED.confort_velo " ;
-
+    private static final String DELECT_SQL="DELETE FROM routing_arc;";
+    
     public static void main(String[] args) throws Exception {
 
         ObjectMapper mapper = new ObjectMapper();
@@ -46,7 +47,8 @@ public class GeoJsonToPostgresImporter {
 
         try (Connection conn = DriverManager.getConnection(JDBC_URL, DB_LOGIN, DB_PASS)) {
             conn.setAutoCommit(false);
-
+            Statement stm = conn.createStatement();
+            stm.execute(DELECT_SQL);
             try (PreparedStatement psNode = conn.prepareStatement(UPSERT_NODE_SQL);
                  PreparedStatement psArc  = conn.prepareStatement(UPSERT_ARC_SQL)) {
 

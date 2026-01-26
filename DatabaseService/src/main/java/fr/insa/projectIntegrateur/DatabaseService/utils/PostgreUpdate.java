@@ -120,7 +120,7 @@ public class PostgreUpdate {
                             access  = getInt(props, "access_pieton", "accessPieton");
                         } else {
                             risque  = getDouble(props, "risque_velo", "risqueVelo");
-                            diff    = getDouble(props, "diff_velo", "diffVelo");
+                            diff    = 1 - getDouble(props, "diff_velo", "diffVelo");
                             confort = getDouble(props, "confort_velo", "confortVelo");
                             access  = getInt(props, "access_velo", "accessVelo");
                         }

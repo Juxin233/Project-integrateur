@@ -38,8 +38,8 @@ public class GatewayServiceResource {
 
     private final RestTemplate restTemplate;
     private final String USER_MS_URL = "http://UserService/user";
-    private final String ROUTING_MS_URL = "http://RoutingService/routing";
-    private final String DATABASE_MS_URL = "http://DatabaseService/database";
+    private final String ROUTING_MS_URL = "http://RoutingService/api/route";
+    private final String DATABASE_MS_URL = "http://DatabaseService/api/route/Database";
     //private final String GUI_URL = "http://GUI/gui";
     
     @Autowired
@@ -493,89 +493,78 @@ public class GatewayServiceResource {
     // ROUTINGSERVICE
     //=================================================
     
-    @GetMapping("/route/dijkstra")
-    public ResponseEntity<String> getDijkstraPath(@RequestParam long start, @RequestParam long end) {
+    @GetMapping("/dijkstra")
+    public ResponseEntity<Reponse> getDijkstraPath(@RequestParam long start, @RequestParam long end) {
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            String url = ROUTING_MS_URL + "/api/route/dijkstra?start=" + start + "&end=" + end;
+            String url = ROUTING_MS_URL + "/dijkstra?start=" + start + "&end=" + end;
+            System.out.println(url);
+            Reponse rawJson = restTemplate.getForObject(url, Reponse.class);
 
-            String rawJson = restTemplate.getForObject(url, String.class);
-            List<Map<String, Object>> path = mapper.readValue(rawJson, new TypeReference<>(){});
-
-            return ResponseEntity.ok()
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(getPrettyOutput(mapper.writeValueAsString(path)));
+            return ResponseEntity.ok(rawJson);
+                    
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("{\"error\":\"Error during Dijkstra path calculation.\"}");
+                    .body(null);
         }
     }
 
-    @GetMapping("/route/astar")
-    public ResponseEntity<String> getAstarPath(@RequestParam long start, @RequestParam long end) {
+    @GetMapping("/astar")
+    public ResponseEntity<Reponse> getAstarPath(@RequestParam long start, @RequestParam long end) {
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            String url = ROUTING_MS_URL + "/api/route/astar?start=" + start + "&end=" + end;
+            String url = ROUTING_MS_URL + "/astar?start=" + start + "&end=" + end;
+            System.out.println(url);
+            Reponse rawJson = restTemplate.getForObject(url, Reponse.class);
 
-            String rawJson = restTemplate.getForObject(url, String.class);
-            List<Map<String, Object>> path = mapper.readValue(rawJson, new TypeReference<>(){});
-
-            return ResponseEntity.ok()
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(getPrettyOutput(mapper.writeValueAsString(path)));
+            return ResponseEntity.ok(rawJson);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("{\"error\":\"Error during A* path calculation.\"}");
+                    .body(null);
         }
     }
 
-    @GetMapping("/route/constrained")
-    public ResponseEntity<String> getConstrainedPath(
+    @GetMapping("/constrained")
+    public ResponseEntity<Reponse> getConstrainedPath(
             @RequestParam long start, @RequestParam long end,
             @RequestParam(defaultValue = "0") double sec,
             @RequestParam(defaultValue = "0") double conf,
-            @RequestParam(defaultValue = "0") double diff) {
+            @RequestParam(defaultValue = "0") double diff,
+            @RequestParam(defaultValue = "2") int typeVoie,
+            @RequestParam(defaultValue = "2") int access) {
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            String url = ROUTING_MS_URL + "/api/route/constrained?start=" + start + "&end=" + end 
-                       + "&sec=" + sec + "&conf=" + conf + "&diff=" + diff;
+            String url = ROUTING_MS_URL + "/constrained?start=" + start + "&end=" + end 
+                       + "&sec=" + sec + "&conf=" + conf + "&diff=" + diff + "&typeVoie=" + typeVoie + "&access=" + access;
+            System.out.println(url);
+            Reponse rawJson = restTemplate.getForObject(url, Reponse.class);
 
-            String rawJson = restTemplate.getForObject(url, String.class);
-            List<Map<String, Object>> path = mapper.readValue(rawJson, new TypeReference<>(){});
-
-            return ResponseEntity.ok()
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(getPrettyOutput(mapper.writeValueAsString(path)));
+            return ResponseEntity.ok(rawJson);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("{\"error\":\"Error during constrained path calculation.\"}");
+                    .body(null);
         }
     }
 
-    @GetMapping("/route/constrained/astar")
-    public ResponseEntity<String> getConstrainedAstarPath(
+    @GetMapping("/constrained/astar")
+    public ResponseEntity<Reponse> getConstrainedAstarPath(
             @RequestParam long start, @RequestParam long end,
             @RequestParam(defaultValue = "0") double sec,
             @RequestParam(defaultValue = "0") double conf,
-            @RequestParam(defaultValue = "0") double diff) {
+            @RequestParam(defaultValue = "0") double diff,
+            @RequestParam(defaultValue = "2") int typeVoie,
+            @RequestParam(defaultValue = "2") int access) {
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            String url = ROUTING_MS_URL + "/api/route/constrained/astar?start=" + start + "&end=" + end 
-                       + "&sec=" + sec + "&conf=" + conf + "&diff=" + diff;
+            String url = ROUTING_MS_URL + "/constrained/astar?start=" + start + "&end=" + end 
+                       + "&sec=" + sec + "&conf=" + conf + "&diff=" + diff + "&typeVoie=" + typeVoie + "&access=" + access;
+            System.out.println(url);
+            Reponse rawJson = restTemplate.getForObject(url, Reponse.class);
 
-            String rawJson = restTemplate.getForObject(url, String.class);
-            List<Map<String, Object>> path = mapper.readValue(rawJson, new TypeReference<>(){});
-
-            return ResponseEntity.ok()
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(getPrettyOutput(mapper.writeValueAsString(path)));
+            return ResponseEntity.ok(rawJson);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("{\"error\":\"Error during constrained A* path calculation.\"}");
+                    .body(null);
         }
     }
     
@@ -608,11 +597,13 @@ public class GatewayServiceResource {
     }
 
     @PostMapping("/database/update")
-    public ResponseEntity<String> updateDatabase() {
+    public ResponseEntity<String> updateDatabase(
+    		@RequestParam double lonA,@RequestParam double latA,@RequestParam double lonB,@RequestParam double latB,@RequestParam int typeVoie) {
         try {
             // Target URL: http://localhost:PORT/api/route/Database/update
             // Since the controller method doesn't take a body, we pass null
-            String response = restTemplate.postForObject(DATABASE_MS_URL + "/api/route/Database/update", null, String.class);
+            String url = DATABASE_MS_URL + "/update?lonA=" + lonA + "&latA=" + latA + "&lonB=" + lonB + "&latB=" + latB + "&typeVoie=" + typeVoie ;
+        	String response = restTemplate.postForObject(url, null, String.class);
             
             return ResponseEntity.ok()
                     .contentType(MediaType.TEXT_PLAIN)
