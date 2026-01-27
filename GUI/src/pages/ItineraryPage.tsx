@@ -1,10 +1,11 @@
 import { MapContainer, TileLayer, Polyline, Marker, Popup, useMapEvents } from "react-leaflet";
 import { useState, useEffect } from "react";
 import type { LatLngExpression } from "leaflet";
+import "leaflet/dist/leaflet.css";
 import Navbar from "../components/Navbar";
 import { api } from "../api/http";
 
-// Helper for clicks
+// --- Helper Component to Handle Clicks on the Map ---
 function MapClickHandler({ onLocationSelect }: { onLocationSelect: (lat: number, lng: number) => void }) {
   useMapEvents({
     click(e) {
@@ -17,31 +18,38 @@ function MapClickHandler({ onLocationSelect }: { onLocationSelect: (lat: number,
 export default function ItineraryPage() {
   const [routePath, setRoutePath] = useState<LatLngExpression[]>([]);
   const [loading, setLoading] = useState(false);
+  
+  // Selection State
   const [startPoint, setStartPoint] = useState<{lat: number, lng: number} | null>(null);
   const [endPoint, setEndPoint] = useState<{lat: number, lng: number} | null>(null);
   const [selectingMode, setSelectingMode] = useState<"start" | "end">("start");
-  
-  // IDs
+
+  // Input IDs
   const [startId, setStartId] = useState("");
   const [endId, setEndId] = useState("");
 
-  // Algorithm Selection
-  const [algo, setAlgo] = useState<"dijkstra" | "astar" | "constrained" | "constrainedAstar">("dijkstra");
-
-  // Load user preferences for display
+  // Algo Selection
+  const [algo, setAlgo] = useState<"constrained" | "constrainedAstar">("constrained");
   const [userPrefs, setUserPrefs] = useState({ security: 0, comfort: 0, difficulty: 0 });
 
   useEffect(() => {
     const saved = localStorage.getItem("routingPrefs");
-    if (saved) setUserPrefs(JSON.parse(saved));
+    if (saved) {
+      try {
+        setUserPrefs(JSON.parse(saved));
+      } catch (e) {
+        console.error("Error parsing prefs", e);
+      }
+    }
   }, []);
 
-  const centerPosition: LatLngExpression = [43.6047, 1.4442];
+  const centerPosition: LatLngExpression = [43.6047, 1.4442]; // Toulouse
 
   const handleMapClick = async (lat: number, lng: number) => {
     try {
       const res = await api.get("/route/nearest", { params: { lat, lon: lng } });
       const snappedId = res.data; 
+
       if (selectingMode === "start") {
         setStartPoint({ lat, lng });
         setStartId(String(snappedId));
@@ -59,48 +67,39 @@ export default function ItineraryPage() {
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!startId || !endId) return alert("Please set both points.");
+    if (!startId || !endId) {
+      alert("Please set both start and end points.");
+      return;
+    }
+
     setLoading(true);
     setRoutePath([]);
 
     try {
-      let endpoint = "route/dijkstra";
-      const params: any = { start: startId, end: endId };
-
-      // Switch endpoints based on selection
-      if (algo === "constrained") {
-        endpoint = "route/constrained";
-        // Backend expects double (e.g. 0.0 to 1.0 or weights). 
-        // We divide by 10 since our sliders are 0-10.
-        params.sec = userPrefs.security / 10;
-        params.conf = userPrefs.comfort / 10;
-        params.diff = userPrefs.difficulty / 10;
-      } else if (algo === "constrainedAstar") {
-        endpoint = "route/constrained/astar";
-        params.sec = userPrefs.security / 10;
-        params.conf = userPrefs.comfort / 10;
-        params.diff = userPrefs.difficulty / 10;
-      } else if (algo === "astar") {
-        endpoint = "route/astar";
-      }
+      const endpoint = algo === "constrained" ? "route/constrained" : "route/constrained/astar";
+      const params = {
+        start: startId,
+        end: endId,
+        sec: userPrefs.security / 10,
+        conf: userPrefs.comfort / 10,
+        diff: userPrefs.difficulty / 10
+      };
 
       const res = await api.get(endpoint, { params });
+      const nodes = res.data.path || [];
       
-      // Handle different response structures (PathResult vs List<Noeud>)
-      let nodes = [];
-      if (res.data.path) {
-        nodes = res.data.path; // It's a PathResult
-        if (res.data.constraintsRelaxed) alert("Note: Constraints were relaxed to find a path.");
+      if (nodes.length === 0) {
+        alert("No route found matching your preferences.");
       } else {
-        nodes = res.data; // It's a raw List
+        if (res.data.constraintsRelaxed) {
+          alert("Note: Constraints were relaxed to find a path.");
+        }
+        const path = nodes.map((node: any) => [node.latitude, node.longitude]);
+        setRoutePath(path);
       }
-
-      const path = nodes.map((n: any) => [n.latitude, n.longitude] as LatLngExpression);
-      setRoutePath(path);
-
     } catch (err) {
-      console.error(err);
-      alert("Error calculating route.");
+      console.error("Routing error:", err);
+      alert("Error calculating route. Check backend logs.");
     } finally {
       setLoading(false);
     }
@@ -111,27 +110,25 @@ export default function ItineraryPage() {
       <Navbar />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-6">
-        {/* Controls */}
+        
+        {/* Controls Card */}
         <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm">
-          <div className="flex justify-between items-start mb-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
             <div>
               <h1 className="text-xl font-bold text-slate-900">Itinerary Planner</h1>
-              <div className="text-xs text-slate-500 mt-1 flex gap-2">
-                <span>Security: <strong>{userPrefs.security}</strong></span>
-                <span>Comfort: <strong>{userPrefs.comfort}</strong></span>
-                <span>Difficulty: <strong>{userPrefs.difficulty}</strong></span>
-                <a href="/infoUser" className="text-blue-600 underline ml-2">Edit</a>
+              <div className="text-xs text-slate-500 mt-1 flex gap-3">
+                <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded">Security: <strong>{userPrefs.security}</strong></span>
+                <span className="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded">Comfort: <strong>{userPrefs.comfort}</strong></span>
+                <span className="bg-purple-50 text-purple-700 px-2 py-0.5 rounded">Difficulty: <strong>{userPrefs.difficulty}</strong></span>
+                <a href="/infoUser" className="text-blue-600 underline ml-1">Edit</a>
               </div>
             </div>
             
-            {/* Algorithm Selector */}
             <select 
               value={algo} 
               onChange={(e) => setAlgo(e.target.value as any)}
-              className="bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+              className="bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 min-w-[200px]"
             >
-              <option value="dijkstra">Standard Dijkstra</option>
-              <option value="astar">Standard A*</option>
               <option value="constrained">Constrained Dijkstra</option>
               <option value="constrainedAstar">Constrained A*</option>
             </select>
@@ -139,23 +136,32 @@ export default function ItineraryPage() {
 
           <div className="flex justify-between items-center mb-4 bg-slate-100 p-2 rounded-lg">
              <div className="flex gap-2">
-                <button onClick={() => setSelectingMode("start")} className={`px-3 py-1.5 text-xs font-medium rounded-md ${selectingMode === "start" ? "bg-white text-blue-600 shadow-sm" : "text-slate-500"}`}>Set Start</button>
-                <button onClick={() => setSelectingMode("end")} className={`px-3 py-1.5 text-xs font-medium rounded-md ${selectingMode === "end" ? "bg-white text-blue-600 shadow-sm" : "text-slate-500"}`}>Set End</button>
+                <button onClick={() => setSelectingMode("start")} className={`px-3 py-1.5 text-xs font-medium rounded-md ${selectingMode === "start" ? "bg-white text-blue-600 ring-1 ring-slate-200" : "text-slate-500"}`}>Set Start</button>
+                <button onClick={() => setSelectingMode("end")} className={`px-3 py-1.5 text-xs font-medium rounded-md ${selectingMode === "end" ? "bg-white text-blue-600 ring-1 ring-slate-200" : "text-slate-500"}`}>Set End</button>
              </div>
              <span className="text-xs text-slate-400 hidden sm:inline">Click map to set points</span>
           </div>
 
           <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-4 items-end">
-             <input type="text" value={startId} readOnly className="w-full bg-slate-50 border border-slate-300 rounded-md px-3 py-2 text-sm" placeholder="Start ID" />
-             <input type="text" value={endId} readOnly className="w-full bg-slate-50 border border-slate-300 rounded-md px-3 py-2 text-sm" placeholder="End ID" />
-             <button type="submit" disabled={loading} className="w-full sm:w-auto bg-slate-900 text-white px-6 py-2 rounded-md text-sm font-medium hover:bg-slate-800 disabled:opacity-50">
-               {loading ? "Calculating..." : "Get Route"}
-             </button>
+            <input type="text" value={startId} readOnly className="w-full bg-slate-50 border border-slate-300 rounded-md px-3 py-2 text-sm" placeholder="Start Node" />
+            <input type="text" value={endId} readOnly className="w-full bg-slate-50 border border-slate-300 rounded-md px-3 py-2 text-sm" placeholder="End Node" />
+            
+            {/* UPDATED BIG BUTTON */}
+            <button 
+              type="submit" 
+              disabled={loading} 
+              className="w-full sm:w-auto bg-slate-900 text-white px-8 py-3 rounded-md text-base font-medium hover:bg-slate-800 disabled:opacity-50 transition-colors whitespace-nowrap min-w-[160px]"
+            >
+              {loading ? "Calculating..." : "Get Route"}
+            </button>
           </form>
         </div>
 
-        {/* Map */}
-        <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden h-[600px] w-full relative z-0">
+        {/* Map Container */}
+        <div 
+          className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden w-full relative z-0"
+          style={{ height: "600px" }} 
+        >
           <MapContainer center={centerPosition} zoom={13} className="w-full h-full">
             <TileLayer attribution='&copy; OpenStreetMap' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
             <MapClickHandler onLocationSelect={handleMapClick} />
