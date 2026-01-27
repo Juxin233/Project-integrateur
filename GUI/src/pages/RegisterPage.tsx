@@ -1,21 +1,54 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
+import { useState } from "react";
+import { registerApi } from "../api/register";
+
+
 
 type RegisterFormData = {
-  LastName: string;
-  FirstName: string;
+  lastName: string;
+  firstName: string;
   email: string;
   password: string;
+  confirmPassword: string;
 };
 
 export default function RegisterPage() {
   const navigate = useNavigate();
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<RegisterFormData>();
+  const [, setServerError] = useState("");
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors, isSubmitting },
+  } = useForm<RegisterFormData>();
+
+  const passwordValue = watch("password");
 
   const onSubmit = async (data: RegisterFormData) => {
-    // API Call placeholder
-    await new Promise((res) => setTimeout(res, 800));
-    navigate("/");
+    setServerError("");
+
+    try {
+      // call register API
+      await registerApi({
+        firstName: data.firstName.trim(),
+        lastName: data.lastName.trim(),
+        email: data.email.trim(),
+        password: data.password,
+        // opcionales si los necesitas luego:
+        // idProfileDefault: 0,
+        // customProfile: null,
+      });
+
+      // after successful registration, navigate to login
+      navigate("/");
+    } catch (e: any) {
+      console.error(e);
+
+      // Generic message 
+      setServerError("Unable to create account. Please try again.");
+    }
   };
 
   return (
@@ -34,7 +67,7 @@ export default function RegisterPage() {
               <input
                 type="text"
                 className="w-full rounded-md border border-slate-300 text-sm px-3 py-2 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                {...register("FirstName", { required: true })}
+                {...register("firstName", { required: true })}
               />
             </div>
             <div>
@@ -42,7 +75,7 @@ export default function RegisterPage() {
               <input
                 type="text"
                 className="w-full rounded-md border border-slate-300 text-sm px-3 py-2 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                {...register("LastName", { required: true })}
+                {...register("lastName", { required: true })}
               />
             </div>
           </div>
@@ -51,9 +84,24 @@ export default function RegisterPage() {
             <label className="block text-xs font-medium text-slate-700 mb-1">Email</label>
             <input
               type="email"
-              className="w-full rounded-md border border-slate-300 text-sm px-3 py-2 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-              {...register("email", { required: "Email required" })}
+              placeholder="Email address"
+              className={`w-full rounded-lg border px-4 py-2 focus:outline-none focus:ring-2 ${
+                errors.email
+                  ? "border-red-500 focus:ring-red-400"
+                  : "border-gray-300 focus:ring-blue-500"
+              }`}
+              {...register("email", {
+                required: "Email is required",
+                pattern: {
+                  value: /^\S+@\S+\.\S+$/,
+                  message: "Invalid email format",
+                },
+              })}
+              disabled={isSubmitting}
             />
+            {errors.email && (
+              <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+            )}
           </div>
 
           <div>
@@ -63,6 +111,33 @@ export default function RegisterPage() {
               className="w-full rounded-md border border-slate-300 text-sm px-3 py-2 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               {...register("password", { required: true, minLength: 6 })}
             />
+            {errors.password && (
+              <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+            )}
+          </div>
+
+          {/* Confirm password */}
+          <div>
+            <input
+              type="password"
+              placeholder="Confirm password"
+              className={`w-full rounded-lg border px-4 py-2 focus:outline-none focus:ring-2 ${
+                errors.confirmPassword
+                  ? "border-red-500 focus:ring-red-400"
+                  : "border-gray-300 focus:ring-blue-500"
+              }`}
+              {...register("confirmPassword", {
+                required: "Please confirm your password",
+                validate: (val) =>
+                  val === passwordValue || "Passwords do not match",
+              })}
+              disabled={isSubmitting}
+            />
+            {errors.confirmPassword && (
+              <p className="mt-1 text-sm text-red-600">
+                {errors.confirmPassword.message}
+              </p>
+            )}
           </div>
 
           <button

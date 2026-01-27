@@ -1,18 +1,32 @@
 package fr.insa.projetIntegrateur.RoutingService.service;
 
-import fr.insa.projetIntegrateur.RoutingService.model.Graph;
-import fr.insa.projetIntegrateur.RoutingService.model.Noeud;
-import fr.insa.projetIntegrateur.RoutingService.utils.GeoJsonLoader;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
 import fr.insa.projetIntegrateur.RoutingService.algorithms.Astar;
 import fr.insa.projetIntegrateur.RoutingService.algorithms.ConstrainedAstar;
 import fr.insa.projetIntegrateur.RoutingService.algorithms.ConstrainedDijkstra;
 import fr.insa.projetIntegrateur.RoutingService.algorithms.Dijkstra;
-import org.springframework.stereotype.Service;
-import java.util.List;
+import fr.insa.projetIntegrateur.RoutingService.model.Graph;
+import fr.insa.projetIntegrateur.RoutingService.model.Noeud;
+import fr.insa.projetIntegrateur.RoutingService.utils.PostgreLoader;
 
 @Service
 public class PathService {
-    private Graph graphe;
+	    private Graph graphe;
+	    
+	    public PathService() throws Exception {
+//	        this.graphe = new GeoJsonLoader().charger("toulouse_graph_nodes_edges_area_Toulouse_2025-11-27.geojson");
+	    	this.graphe = PostgreLoader.loadMap();
+	        if (graphe.getNombreNoeuds() > 0 && graphe.getNombreArcs() > 0) {
+	            System.out.println("✅ Graph loaded successfully!");
+	            System.out.printf("Nodes: %d, Arcs: %d%n", graphe.getNombreNoeuds(), graphe.getNombreArcs());
+	        } else {
+	            System.out.printf("⚠️ Graph loaded, but appears empty (Nodes: %d, Arcs: %d). Check GeoJSON content.%n", 
+	                              graphe.getNombreNoeuds(), graphe.getNombreArcs());
+	        }
+	    }
 
     public static class PathResult {
         public List<Noeud> path;
@@ -24,10 +38,6 @@ public class PathService {
         }
     }
 
-    public PathService() throws Exception {
-        // Ensure this filename matches exactly what is in your src/main/resources
-        this.graphe = new GeoJsonLoader().charger("toulouse_graph_nodes_edges_area_Toulouse_2025-11-27.geojson");
-    }
 
     public List<Noeud> calculerDijkstra(long start, long end, int type) {
         return new Dijkstra().shortestPath(graphe, start, end, type);
