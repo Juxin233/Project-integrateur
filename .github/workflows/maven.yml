@@ -1,0 +1,38 @@
+name: Build Maven Services (no tests)
+
+on:
+  push: 
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        pom:
+          - DatabaseService/pom.xml
+          - GatewayService/pom.xml
+          - RoutingService/pom.xml
+          - UserService/pom.xml
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+          cache-dependency-path: |
+            DatabaseService/pom.xml
+            GatewayService/pom.xml
+            RoutingService/pom.xml
+            UserService/pom.xml
+
+      - name: Build ${{ matrix.pom }} (skip tests)
+        run: mvn -B -f "${{ matrix.pom }}" -DskipTests compile package
