@@ -35,4 +35,4 @@ jobs:
             UserService/pom.xml
 
       - name: Build ${{ matrix.pom }} (skip tests)
-        run: mvn -B -f "${{ matrix.pom }}" -DskipTests package
+        run: mvn -B -f "${{ matrix.pom }}" -DskipTests compile package
