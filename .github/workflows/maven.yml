@@ -1,4 +1,4 @@
-name: Build Maven Services (no tests)
+name: Build Maven Services 
 
 on:
   push: 
